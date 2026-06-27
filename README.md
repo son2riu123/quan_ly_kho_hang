@@ -75,3 +75,4 @@ Tuyệt đối KHÔNG push thư mục node_modules và file .env lên kho lưu t
 Logic tính toán (như tính số lượng tồn kho) phải được viết ở tầng services/, không viết chung vào controllers/.
 
 Nếu bạn cài đặt thêm một thư viện mới (ví dụ: npm install cors), hãy báo cho các thành viên khác để họ chạy lại lệnh npm install khi pull code về.
+
