@@ -26,7 +26,10 @@ app.use('/api/donvitinh', require('./routes/donViTinhRoutes'));
 app.use('/api/danh-muc-vi-tri-khuyen-nghi', require('./routes/DanhMucViTriKhuyenNghiRoutes'));
 app.use('/api/quy-cach-dong-goi', require('./routes/QuyCachDongGoiRoutes'));
 app.use('/api/nhom-kiem-ke', require('./routes/NhomKiemKeRoutes'));
-
+app.use('/api/chung-tu-giao-hang', require('./routes/ChungTuGiaoHangRoutes'));
+app.use('/api/bien-ban-giao-nhan', require('./routes/BienBanGiaoNhanRoutes'));
+app.use('/api/bien-ban-kiem-nghiem', require('./routes/BienBanKiemNghiemRoutes'));
+app.use('/api/ho-so-dot-nhap', require('./routes/HoSoDotNhapRoutes'));
 connectDB();
 
 app.listen(port, () => {
