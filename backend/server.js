@@ -22,6 +22,10 @@ app.use('/api/tonkho', require('./routes/tonKhoRoutes'));
 app.use('/api/thekho', require('./routes/theKhoRoutes'));
 app.use('/api/kiemke', require('./routes/kiemKeRoutes'));
 app.use('/api/donvitinh', require('./routes/donViTinhRoutes'));
+// 
+app.use('/api/danh-muc-vi-tri-khuyen-nghi', require('./routes/DanhMucViTriKhuyenNghiRoutes'));
+app.use('/api/quy-cach-dong-goi', require('./routes/QuyCachDongGoiRoutes'));
+app.use('/api/nhom-kiem-ke', require('./routes/NhomKiemKeRoutes'));
 
 connectDB();
 
