@@ -62,10 +62,10 @@ export default function Login() {
           {/* Logo mark */}
           <div className="login-logo">
             <div className="login-logo-icon">
-              <Package size={22} strokeWidth={1.5} color="rgba(255,255,255,0.9)" />
+              <Package size={22} strokeWidth={1.5} color="currentColor" />
             </div>
             <div className="login-logo-text">
-              <span className="login-logo-name">KhoVận Pro</span>
+              <span className="login-logo-name">Kho Vận Pro</span>
               <span className="login-logo-sub">Hệ thống Quản lý Kho hàng</span>
             </div>
           </div>

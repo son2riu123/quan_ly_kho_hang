@@ -39,6 +39,12 @@ const NhanVienController = {
       const result = await NhanVien.delete(req.params.id);
       res.status(200).json(result);
     } catch (error) {
+      if (error.message && (error.message.includes("REFERENCE constraint") || error.message.includes("conflicted with the REFERENCE constraint"))) {
+        return res.status(409).json({ 
+          message: "Không thể xóa nhân viên này do đã có dữ liệu liên kết lịch sử trong hệ thống (đơn hàng, nhiệm vụ xác minh, yêu cầu mua...).",
+          error: "Khuyên dùng: Đổi trạng thái hoạt động của nhân viên thành 'Đã nghỉ việc' thay vì xóa."
+        });
+      }
       res.status(500).json({ message: "Lỗi xóa", error: error.message });
     }
   }

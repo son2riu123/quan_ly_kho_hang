@@ -37,6 +37,12 @@ function TonKho() {
 
   useEffect(() => { fetchData(); }, []);
 
+  useEffect(() => {
+    const handleGlobalSearch = (e) => { setSearch(e.detail || ''); };
+    window.addEventListener('global-search', handleGlobalSearch);
+    return () => window.removeEventListener('global-search', handleGlobalSearch);
+  }, []);
+
   const filteredSummary = summary.filter(item =>
     (item.TEN_MAT_HANG || '').toLowerCase().includes(search.toLowerCase()) ||
     (item.MA_MAT_HANG || '').toLowerCase().includes(search.toLowerCase())

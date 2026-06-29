@@ -13,7 +13,9 @@ import {
   Navigation, 
   ClipboardCheck,
   ShieldCheck,
-  FileText
+  FileText,
+  Settings,
+  ShieldAlert
 } from 'lucide-react';
 
 // Khai báo menu kèm theo danh sách vai trò (roles) được quyền nhìn thấy
@@ -48,9 +50,16 @@ const menuItems = [
       { path: '/tonkho', icon: BarChart3, label: 'Tồn kho', roles: ['Quản lý kho', 'Thủ kho', 'Kế toán kho', 'Ban giám đốc'] },
       { path: '/vitrikho', icon: Navigation, label: 'Vị trí kho', roles: ['Quản lý kho', 'Thủ kho', 'Kế toán kho'] },
       { path: '/kiemke', icon: ClipboardCheck, label: 'Kiểm kê', roles: ['Quản lý kho', 'Thủ kho'] },
+      { path: '/canhbaoxacminh', icon: ShieldAlert, label: 'Cảnh báo & Xác minh', roles: ['Quản lý kho', 'Thủ kho', 'Ban giám đốc'] },
       { path: '/baocao', icon: FileText, label: 'Báo cáo tổng hợp', roles: ['Quản lý kho', 'Ban giám đốc', 'Kế toán kho'] },
     ]
   },
+  {
+    section: 'Cấu hình',
+    items: [
+      { path: '/caidat', icon: Settings, label: 'Cài đặt hệ thống', roles: ['Quản lý kho', 'Ban giám đốc'] },
+    ]
+  }
 ];
 
 function Sidebar({ isOpen, onClose }) {

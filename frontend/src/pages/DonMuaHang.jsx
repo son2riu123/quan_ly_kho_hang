@@ -24,6 +24,9 @@ function DonMuaHang() {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState('');
   
+  const [requisitions, setRequisitions] = useState([]);
+  const [selectedReqId, setSelectedReqId] = useState('');
+  
   const [form, setForm] = useState({
     MA_DON_MUA: '', MA_NHA_CUNG_CAP: '', MA_KHO_NHAN: '',
     NGAY_DAT: new Date().toISOString().split('T')[0],
@@ -37,16 +40,18 @@ function DonMuaHang() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [poRes, nccRes, khoRes, mhRes] = await Promise.all([
+      const [poRes, nccRes, khoRes, mhRes, reqsRes] = await Promise.all([
         api.get('/donmuahang'),
         api.get('/nhacungcap'),
         api.get('/kho'),
-        api.get('/mathang')
+        api.get('/mathang'),
+        api.get('/yeu-cau-mua-bo-sung').catch(() => ({ data: [] }))
       ]);
       setData(poRes.data);
       setSuppliers(nccRes.data);
       setWarehouses(khoRes.data);
       setProducts(mhRes.data);
+      setRequisitions(reqsRes.data || []);
     } catch (err) {
       console.error(err);
       setData([]);
@@ -56,6 +61,12 @@ function DonMuaHang() {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  useEffect(() => {
+    const handleGlobalSearch = (e) => { setSearch(e.detail || ''); };
+    window.addEventListener('global-search', handleGlobalSearch);
+    return () => window.removeEventListener('global-search', handleGlobalSearch);
+  }, []);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -114,7 +125,42 @@ function DonMuaHang() {
       NGAY_DAT: new Date().toISOString().split('T')[0],
       NGAY_DU_KIEN_GIAO: '', GHI_CHU: '', details: [], TONG_TIEN: 0, TONG_SO_LUONG_DAT: 0
     });
+    setSelectedReqId('');
     setShowModal(true);
+  };
+
+  const handleSelectRequisition = (e) => {
+    const reqId = e.target.value;
+    setSelectedReqId(reqId);
+    if (!reqId) return;
+
+    const req = requisitions.find(r => r.MA_YEU_CAU_MUA.trim() === reqId.trim());
+    if (req) {
+      const prod = products.find(p => p.MA_MAT_HANG.trim() === req.MA_MAT_HANG.trim());
+      if (prod) {
+        const detailItem = {
+          MA_CHI_TIET_DON_MUA: 'CT' + Math.floor(1000 + Math.random() * 9000),
+          MA_MAT_HANG: req.MA_MAT_HANG.trim(),
+          TEN_MAT_HANG: prod.TEN_MAT_HANG,
+          MA_DON_VI_TINH: prod.MA_DON_VI_TINH_NHAP.trim(),
+          SO_LUONG_DAT: req.SO_LUONG_DE_XUAT,
+          DON_GIA: 0,
+          THANH_TIEN: 0,
+          GHI_CHU: `Đề xuất mua bổ sung từ cảnh báo tồn kho`
+        };
+
+        setForm(prev => {
+          const details = [...prev.details, detailItem];
+          const tongSoLuongDat = details.reduce((sum, item) => sum + item.SO_LUONG_DAT, 0);
+          return {
+            ...prev,
+            MA_KHO_NHAN: req.MA_KHO.trim(),
+            details,
+            TONG_SO_LUONG_DAT: tongSoLuongDat
+          };
+        });
+      }
+    }
   };
 
   const viewDetail = async (maDonMua) => {
@@ -132,6 +178,10 @@ function DonMuaHang() {
     if (form.details.length === 0) return alert('Vui lòng thêm ít nhất 1 mặt hàng vào đơn hàng');
     try {
       await api.post('/donmuahang', form);
+      if (selectedReqId) {
+        // Cập nhật trạng thái yêu cầu mua bổ sung thành 'Đã lập PO'
+        await api.put(`/yeu-cau-mua-bo-sung/${selectedReqId.trim()}/status`, { trangThai: 'Đã lập PO' });
+      }
       setShowModal(false);
       fetchData();
     } catch (err) {
@@ -224,6 +274,23 @@ function DonMuaHang() {
                     <label>Mã đơn mua (PO)</label>
                     <input name="MA_DON_MUA" value={form.MA_DON_MUA} onChange={handleChange} required placeholder="VD: PO001" />
                   </div>
+                  <div className="form-group">
+                    <label>Yêu cầu mua bổ sung liên kết (Nếu có)</label>
+                    <select value={selectedReqId} onChange={handleSelectRequisition}>
+                      <option value="">-- Không liên kết --</option>
+                      {requisitions
+                        .filter(r => r.TRANG_THAI_YEU_CAU === 'Chờ duyệt' || r.TRANG_THAI_YEU_CAU === 'Chờ xử lý' || r.TRANG_THAI_YEU_CAU === 'Chờ xác minh')
+                        .map(r => (
+                          <option key={r.MA_YEU_CAU_MUA} value={r.MA_YEU_CAU_MUA.trim()}>
+                            {r.MA_YEU_CAU_MUA.trim()} - MH: {r.MA_MAT_HANG.trim()} (SL: {r.SO_LUONG_DE_XUAT})
+                          </option>
+                        ))
+                      }
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-row">
                   <div className="form-group">
                     <label>Nhà cung cấp</label>
                     <select name="MA_NHA_CUNG_CAP" value={form.MA_NHA_CUNG_CAP} onChange={handleChange} required>

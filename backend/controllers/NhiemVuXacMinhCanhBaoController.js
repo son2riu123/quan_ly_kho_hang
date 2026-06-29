@@ -25,6 +25,17 @@ const NhiemVuXacMinhCanhBaoController = {
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
+  },
+  submitResult: async (req, res) => {
+    try {
+      const result = await NhiemVuXacMinhCanhBao.submitResult({
+        ...req.body,
+        MA_NHIEM_VU: req.params.id
+      });
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
   }
 };
 module.exports = NhiemVuXacMinhCanhBaoController;

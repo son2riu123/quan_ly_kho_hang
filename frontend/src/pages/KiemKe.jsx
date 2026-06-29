@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../services/api';
-import { 
-  Search, 
-  Plus, 
-  Eye, 
-  X, 
-  Check, 
-  Loader2, 
+import {
+  Search,
+  Plus,
+  Eye,
+  X,
+  Check,
+  Loader2,
   CheckSquare,
   AlertTriangle,
   FileCheck,
@@ -17,7 +17,7 @@ import {
 function KiemKe() {
   const [dots, setDots] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [showDotModal, setShowDotModal] = useState(false);
   const [showPhieuModal, setShowPhieuModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -25,7 +25,7 @@ function KiemKe() {
 
   const [selectedDot, setSelectedDot] = useState(null);
   const [selectedPhieu, setSelectedPhieu] = useState(null);
-  
+
   const [warehouses, setWarehouses] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [stockDetails, setStockDetails] = useState([]);
@@ -48,8 +48,8 @@ function KiemKe() {
   });
 
   const [dotForm, setDotForm] = useState({
-    MA_DOT_KIEM_KE: '', TEN_DOT_KIEM_KE: '', MA_KHO: '', 
-    LOAI_KIEM_KE: 'Đột xuất', PHAM_VI_KIEM_KE: 'Toàn bộ kho', 
+    MA_DOT_KIEM_KE: '', TEN_DOT_KIEM_KE: '', MA_KHO: '',
+    LOAI_KIEM_KE: 'Đột xuất', PHAM_VI_KIEM_KE: 'Toàn bộ kho',
     NGUOI_LAP: '', GHI_CHU: ''
   });
 
@@ -85,6 +85,12 @@ function KiemKe() {
 
   useEffect(() => { fetchData(); }, []);
 
+  useEffect(() => {
+    const handleGlobalSearch = (e) => { setSearch(e.detail || ''); };
+    window.addEventListener('global-search', handleGlobalSearch);
+    return () => window.removeEventListener('global-search', handleGlobalSearch);
+  }, []);
+
   const handleDotChange = (e) => setDotForm({ ...dotForm, [e.target.name]: e.target.value });
   const handlePhieuChange = (e) => setPhieuForm({ ...phieuForm, [e.target.name]: e.target.value });
 
@@ -99,7 +105,7 @@ function KiemKe() {
       // Tải thông tin tồn kho hiện tại để đối chiếu số sách
       const stockRes = await api.get('/tonkho');
       const dotInfo = dots.find(d => d.MA_DOT_KIEM_KE.trim() === maDot.trim());
-      
+
       if (!dotInfo) {
         alert('Không tìm thấy thông tin đợt kiểm kê!');
         return;
@@ -138,22 +144,22 @@ function KiemKe() {
       setItemAdder(prev => ({ ...prev, MA_MAT_HANG: '', SO_LUONG_SO_SACH: 0, SO_LUONG_THUC_TE: 0 }));
       return;
     }
-    
+
     try {
       const stockRes = await api.get('/tonkho');
       const dotInfo = dots.find(d => d.MA_DOT_KIEM_KE.trim() === phieuForm.MA_DOT_KIEM_KE.trim());
-      
+
       if (!dotInfo) {
         alert('Vui lòng chọn Đợt kiểm kê trước!');
         return;
       }
 
       // Tìm xem mặt hàng này có tồn ở kho tương ứng của Đợt kiểm kê này không
-      const match = stockRes.data.find(item => 
-        item.MA_MAT_HANG.trim() === maMatHang.trim() && 
+      const match = stockRes.data.find(item =>
+        item.MA_MAT_HANG.trim() === maMatHang.trim() &&
         item.MA_KHO.trim() === dotInfo.MA_KHO.trim()
       );
-      
+
       setItemAdder(prev => ({
         ...prev,
         MA_MAT_HANG: maMatHang,
@@ -172,9 +178,9 @@ function KiemKe() {
     if (!phieuForm.MA_DOT_KIEM_KE) return alert('Vui lòng chọn đợt kiểm kê trước!');
     if (!itemAdder.MA_MAT_HANG) return alert('Vui lòng chọn mặt hàng');
     if (!itemAdder.MA_VI_TRI) return alert('Vui lòng chọn vị trí');
-    
+
     const product = allProducts.find(p => p.MA_MAT_HANG.trim() === itemAdder.MA_MAT_HANG.trim());
-    
+
     const newItem = {
       MA_CHI_TIET_KIEM_KE: 'KK' + Math.floor(1000 + Math.random() * 9000),
       MA_MAT_HANG: itemAdder.MA_MAT_HANG.trim(),
@@ -192,7 +198,7 @@ function KiemKe() {
 
     setPhieuForm(prev => {
       // Tránh trùng lặp cùng sản phẩm ở cùng vị trí trong details
-      const filteredDetails = prev.details.filter(item => 
+      const filteredDetails = prev.details.filter(item =>
         !(item.MA_MAT_HANG.trim() === newItem.MA_MAT_HANG && item.MA_VI_TRI_HE_THONG.trim() === newItem.MA_VI_TRI_HE_THONG)
       );
       return {
@@ -299,7 +305,52 @@ function KiemKe() {
     e.preventDefault();
     if (phieuForm.details.length === 0) return alert('Vui lòng chọn đợt kiểm kê có hàng hóa để kiểm kê');
     try {
-      await api.post('/kiemke/phieu', phieuForm);
+      // 1. Tạo phiếu kiểm kê (Map details sang chiTiet phục vụ model backend)
+      await api.post('/kiemke/phieu', {
+        ...phieuForm,
+        chiTiet: phieuForm.details
+      });
+
+      // 2. Tự động phát hiện chênh lệch để khởi tạo hồ sơ sai lệch tồn kho
+      const discrepancies = phieuForm.details.filter(item => item.SO_LUONG_THUC_TE !== item.SO_LUONG_SO_SACH);
+      if (discrepancies.length > 0) {
+        const maHoSo = 'SL' + Math.floor(1000 + Math.random() * 9000);
+        const chiTietList = discrepancies.map(item => {
+          const slSaiLech = item.SO_LUONG_THUC_TE - item.SO_LUONG_SO_SACH;
+          return {
+            MA_CHI_TIET_SAI_LECH: 'CS' + Math.floor(1000 + Math.random() * 9000),
+            MA_HO_SO: maHoSo,
+            MA_MAT_HANG: item.MA_MAT_HANG.trim(),
+            MA_LO_HANG: item.MA_LO_HANG ? item.MA_LO_HANG.trim() : null,
+            MA_VI_TRI: item.MA_VI_TRI_HE_THONG ? item.MA_VI_TRI_HE_THONG.trim() : '',
+            TRANG_THAI_HANG: item.TINH_TRANG_HANG || 'Bình thường',
+            MA_DON_VI_TINH: 'DVT01',
+            SO_LUONG_HE_THONG: item.SO_LUONG_SO_SACH,
+            SO_LUONG_THUC_TE: item.SO_LUONG_THUC_TE,
+            SO_LUONG_SAI_LECH: Math.abs(slSaiLech),
+            LOAI_SAI_LECH: slSaiLech > 0 ? 'Thừa' : 'Thiếu',
+            MO_TA_SAI_LECH: item.GHI_CHU || `Sai lệch phát sinh từ phiếu kiểm kê ${phieuForm.MA_PHIEU_KIEM_KE}`,
+            MINH_CHUNG: null
+          };
+        });
+
+        await api.post('/ho-so-xu-ly-sai-lech-ton-kho', {
+          MA_HO_SO: maHoSo,
+          NGUOI_PHAT_HIEN: phieuForm.NGUOI_PHU_TRACH || 'NV01',
+          THOI_DIEM_PHAT_HIEN: new Date().toISOString(),
+          NGUON_PHAT_HIEN: `Kiểm kê đợt ${phieuForm.MA_DOT_KIEM_KE.trim()}`,
+          MO_TA_CHUNG: `Tự động tạo do chênh lệch tại phiếu kiểm kê ${phieuForm.MA_PHIEU_KIEM_KE}`,
+          TRANG_THAI_HO_SO: 'Chờ duyệt',
+          NGUOI_XU_LY: null,
+          THOI_DIEM_XU_LY: null,
+          GHI_CHU: phieuForm.GHI_CHU || '',
+          chiTietList
+        });
+        alert('Đã lập phiếu kiểm kê thành công! Phát hiện có chênh lệch tồn kho và đã tự động khởi tạo Hồ sơ xử lý sai lệch!');
+      } else {
+        alert('Lập phiếu kiểm kê thành công! Không có chênh lệch tồn kho.');
+      }
+
       setShowPhieuModal(false);
       fetchData();
     } catch (err) {
@@ -363,10 +414,10 @@ function KiemKe() {
             ${rows.map(row => `
               <tr>
                 ${row.map((cell, idx) => {
-                  let cellClass = '';
-                  if (idx === 0 || idx === 5 || idx === 6) cellClass = 'class="center"';
-                  return `<td ${cellClass}>${cell !== null && cell !== undefined ? cell : ''}</td>`;
-                }).join('')}
+      let cellClass = '';
+      if (idx === 0 || idx === 5 || idx === 6) cellClass = 'class="center"';
+      return `<td ${cellClass}>${cell !== null && cell !== undefined ? cell : ''}</td>`;
+    }).join('')}
               </tr>
             `).join('')}
           </tbody>
@@ -396,8 +447,8 @@ function KiemKe() {
       <div className="page-header">
         <h2>Kiểm kê & Đối soát tồn kho</h2>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            className="btn btn-secondary" 
+          <button
+            className="btn btn-secondary"
             style={{ background: '#10b981', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}
             onClick={exportToExcel}
           >
@@ -447,10 +498,9 @@ function KiemKe() {
                     <td>{item.PHAM_VI_KIEM_KE}</td>
                     <td>{new Date(item.THOI_DIEM_BAT_DAU).toLocaleString('vi-VN')}</td>
                     <td>
-                      <span className={`badge ${
-                        item.TRANG_THAI_DOT === 'Đã hoàn thành' ? 'badge-success' : 
-                        item.TRANG_THAI_DOT === 'Đang thực hiện' ? 'badge-info' : 'badge-warning'
-                      }`}>
+                      <span className={`badge ${item.TRANG_THAI_DOT === 'Đã hoàn thành' ? 'badge-success' :
+                          item.TRANG_THAI_DOT === 'Đang thực hiện' ? 'badge-info' : 'badge-warning'
+                        }`}>
                         {item.TRANG_THAI_DOT}
                       </span>
                     </td>
@@ -470,255 +520,277 @@ function KiemKe() {
       {/* MODAL LẬP ĐỢT KIỂM KÊ */}
       {showDotModal && (
         <div className="modal-overlay" onClick={() => setShowDotModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <form className="modal" onClick={(e) => e.stopPropagation()} onSubmit={handleDotSubmit}>
             <div className="modal-header">
               <h3>Tạo đợt kiểm kê kho bãi mới</h3>
-              <button className="modal-close" onClick={() => setShowDotModal(false)}><X size={16} /></button>
+              <button type="button" className="modal-close" onClick={() => setShowDotModal(false)}><X size={16} /></button>
             </div>
-            <form onSubmit={handleDotSubmit}>
-              <div className="modal-body">
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Mã đợt kiểm kê</label>
+                <input name="MA_DOT_KIEM_KE" value={dotForm.MA_DOT_KIEM_KE} onChange={handleDotChange} required />
+              </div>
+              <div className="form-group">
+                <label>Tên đợt kiểm kê</label>
+                <input name="TEN_DOT_KIEM_KE" value={dotForm.TEN_DOT_KIEM_KE} onChange={handleDotChange} required placeholder="VD: Kiểm kê định kỳ Cuối Tháng 6" />
+              </div>
+              <div className="form-group">
+                <label>Kho cần kiểm kê</label>
+                <select name="MA_KHO" value={dotForm.MA_KHO} onChange={handleDotChange} required>
+                  <option value="">-- Chọn kho hàng --</option>
+                  {warehouses.map(w => <option key={w.MA_KHO} value={w.MA_KHO}>{w.TEN_KHO}</option>)}
+                </select>
+              </div>
+              <div className="form-row">
                 <div className="form-group">
-                  <label>Mã đợt kiểm kê</label>
-                  <input name="MA_DOT_KIEM_KE" value={dotForm.MA_DOT_KIEM_KE} onChange={handleDotChange} required />
-                </div>
-                <div className="form-group">
-                  <label>Tên đợt kiểm kê</label>
-                  <input name="TEN_DOT_KIEM_KE" value={dotForm.TEN_DOT_KIEM_KE} onChange={handleDotChange} required placeholder="VD: Kiểm kê định kỳ Cuối Tháng 6" />
-                </div>
-                <div className="form-group">
-                  <label>Kho cần kiểm kê</label>
-                  <select name="MA_KHO" value={dotForm.MA_KHO} onChange={handleDotChange} required>
-                    <option value="">-- Chọn kho hàng --</option>
-                    {warehouses.map(w => <option key={w.MA_KHO} value={w.MA_KHO}>{w.TEN_KHO}</option>)}
-                  </select>
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Loại kiểm kê</label>
-                    <select name="LOAI_KIEM_KE" value={dotForm.LOAI_KIEM_KE} onChange={handleDotChange}>
-                      <option value="Định kỳ">Định kỳ</option>
-                      <option value="Đột xuất">Đột xuất</option>
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label>Phạm vi</label>
-                    <input name="PHAM_VI_KIEM_KE" value={dotForm.PHAM_VI_KIEM_KE} onChange={handleDotChange} placeholder="VD: Toàn bộ kho, Khu lạnh..." />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Người lập đợt</label>
-                  <select name="NGUOI_LAP" value={dotForm.NGUOI_LAP} onChange={handleDotChange} required>
-                    <option value="">-- Chọn người lập --</option>
-                    {employees.map(e => <option key={e.MA_NHAN_VIEN} value={e.MA_NHAN_VIEN}>{e.HO_TEN}</option>)}
+                  <label>Loại kiểm kê</label>
+                  <select name="LOAI_KIEM_KE" value={dotForm.LOAI_KIEM_KE} onChange={handleDotChange}>
+                    <option value="Định kỳ">Định kỳ</option>
+                    <option value="Đột xuất">Đột xuất</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Ghi chú</label>
-                  <input name="GHI_CHU" value={dotForm.GHI_CHU} onChange={handleDotChange} />
+                  <label>Phạm vi</label>
+                  <input name="PHAM_VI_KIEM_KE" value={dotForm.PHAM_VI_KIEM_KE} onChange={handleDotChange} placeholder="VD: Toàn bộ kho, Khu lạnh..." />
                 </div>
               </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowDotModal(false)}>Hủy</button>
-                <button type="submit" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Check size={14} /> Khởi tạo đợt
-                </button>
+              <div className="form-group">
+                <label>Người lập đợt</label>
+                <select name="NGUOI_LAP" value={dotForm.NGUOI_LAP} onChange={handleDotChange} required>
+                  <option value="">-- Chọn người lập --</option>
+                  {employees.filter(e => e.TRANG_THAI === 'Đang làm' && e.CHUC_VU !== 'KCS' && (e.CHUC_VU === 'Quản lý kho' || e.CHUC_VU === 'Nhân viên kiểm kê')).map(e => (
+                    <option key={e.MA_NHAN_VIEN} value={e.MA_NHAN_VIEN}>{e.HO_TEN} ({e.CHUC_VU})</option>
+                  ))}
+                </select>
               </div>
-            </form>
-          </div>
+              <div className="form-group">
+                <label>Ghi chú</label>
+                <input name="GHI_CHU" value={dotForm.GHI_CHU} onChange={handleDotChange} />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={() => setShowDotModal(false)}>Hủy</button>
+              <button type="submit" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Check size={14} /> Khởi tạo đợt
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
       {/* MODAL LẬP PHIẾU KIỂM KÊ */}
       {showPhieuModal && (
         <div className="modal-overlay" onClick={() => setShowPhieuModal(false)}>
-          <div className="modal" style={{ maxWidth: '800px' }} onClick={(e) => e.stopPropagation()}>
+          <form className="modal" style={{ maxWidth: '800px' }} onClick={(e) => e.stopPropagation()} onSubmit={handlePhieuSubmit}>
             <div className="modal-header">
               <h3>Lập phiếu kiểm kê thực tế</h3>
-              <button className="modal-close" onClick={() => setShowPhieuModal(false)}><X size={16} /></button>
+              <button type="button" className="modal-close" onClick={() => setShowPhieuModal(false)}><X size={16} /></button>
             </div>
-            <form onSubmit={handlePhieuSubmit}>
-              <div className="modal-body" style={{ maxHeight: '70vh' }}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Mã phiếu kiểm kê</label>
-                    <input name="MA_PHIEU_KIEM_KE" value={phieuForm.MA_PHIEU_KIEM_KE} onChange={handlePhieuChange} required />
-                  </div>
-                  <div className="form-group">
-                    <label>Thuộc đợt kiểm kê</label>
-                    <select name="MA_DOT_KIEM_KE" value={phieuForm.MA_DOT_KIEM_KE} onChange={handleSelectDotForPhieu} required>
-                      <option value="">-- Chọn đợt kiểm kê --</option>
-                      {dots.filter(d => d.TRANG_THAI_DOT !== 'Đã hoàn thành').map(d => (
-                        <option key={d.MA_DOT_KIEM_KE} value={d.MA_DOT_KIEM_KE}>{d.TEN_DOT_KIEM_KE}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Người kiểm kê phụ trách</label>
-                    <select name="NGUOI_PHU_TRACH" value={phieuForm.NGUOI_PHU_TRACH} onChange={handlePhieuChange} required>
-                      <option value="">-- Chọn người phụ trách --</option>
-                      {employees.map(e => <option key={e.MA_NHAN_VIEN} value={e.MA_NHAN_VIEN}>{e.HO_TEN}</option>)}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label>Nhóm kiểm kê phụ trách</label>
-                    <input name="MA_NHOM_KIEM_KE" value={phieuForm.MA_NHOM_KIEM_KE} onChange={handlePhieuChange} placeholder="Mã nhóm kiểm" />
-                  </div>
-                </div>
-
+            <div className="modal-body" style={{ maxHeight: '70vh' }}>
+              <div className="form-row">
                 <div className="form-group">
-                  <label>Ghi chú phiếu kiểm</label>
-                  <input name="GHI_CHU" value={phieuForm.GHI_CHU} onChange={handlePhieuChange} />
+                  <label>Mã phiếu kiểm kê</label>
+                  <input name="MA_PHIEU_KIEM_KE" value={phieuForm.MA_PHIEU_KIEM_KE} onChange={handlePhieuChange} required />
                 </div>
+                <div className="form-group">
+                  <label>Thuộc đợt kiểm kê</label>
+                  <select name="MA_DOT_KIEM_KE" value={phieuForm.MA_DOT_KIEM_KE} onChange={handleSelectDotForPhieu} required>
+                    <option value="">-- Chọn đợt kiểm kê --</option>
+                    {dots.filter(d => d.TRANG_THAI_DOT !== 'Đã hoàn thành').map(d => (
+                      <option key={d.MA_DOT_KIEM_KE} value={d.MA_DOT_KIEM_KE}>{d.TEN_DOT_KIEM_KE}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-                {/* BỘ CHỌN MẶT HÀNG THỦ CÔNG ĐỂ THÊM VÀO PHIẾU */}
-                {phieuForm.MA_DOT_KIEM_KE && (
-                  <div style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', padding: '12px', marginTop: '16px' }}>
-                    <h4 style={{ fontSize: '13px', marginBottom: '10px', color: '#3b82f6', fontWeight: 650 }}>Thêm sản phẩm cần kiểm soát thủ công</h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
-                      <div className="form-group">
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Chọn mặt hàng</label>
-                        <select 
-                          value={itemAdder.MA_MAT_HANG} 
-                          onChange={(e) => handleProductSelectInAdder(e.target.value)}
-                          style={{ padding: '6px', fontSize: '13px' }}
-                        >
-                          <option value="">-- Chọn mặt hàng --</option>
-                          {allProducts.map(p => (
-                            <option key={p.MA_MAT_HANG} value={p.MA_MAT_HANG}>{p.TEN_MAT_HANG} ({p.MA_MAT_HANG.trim()})</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="form-group">
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Vị trí kho lưu trữ</label>
-                        <select 
-                          value={itemAdder.MA_VI_TRI} 
-                          onChange={(e) => setItemAdder({ ...itemAdder, MA_VI_TRI: e.target.value })}
-                          style={{ padding: '6px', fontSize: '13px' }}
-                        >
-                          <option value="">-- Chọn vị trí --</option>
-                          {allLocations.map(l => (
-                            <option key={l.MA_VI_TRI} value={l.MA_VI_TRI}>{l.MA_VI_TRI.trim()} ({l.TEN_VI_TRI})</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Người kiểm kê phụ trách</label>
+                  <select name="NGUOI_PHU_TRACH" value={phieuForm.NGUOI_PHU_TRACH} onChange={handlePhieuChange} required>
+                    <option value="">-- Chọn người phụ trách --</option>
+                    {employees.filter(e => e.TRANG_THAI === 'Đang làm' && e.CHUC_VU !== 'KCS' && (e.CHUC_VU === 'Thủ kho' || e.CHUC_VU === 'Nhân viên kiểm kê')).map(e => (
+                      <option key={e.MA_NHAN_VIEN} value={e.MA_NHAN_VIEN}>{e.HO_TEN} ({e.CHUC_VU})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Nhóm kiểm kê phụ trách</label>
+                  <input name="MA_NHOM_KIEM_KE" value={phieuForm.MA_NHOM_KIEM_KE} onChange={handlePhieuChange} placeholder="Mã nhóm kiểm" />
+                </div>
+              </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
-                      <div className="form-group">
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Mã lô hàng (nếu có)</label>
-                        <select 
-                          value={itemAdder.MA_LO_HANG} 
-                          onChange={(e) => setItemAdder({ ...itemAdder, MA_LO_HANG: e.target.value })}
-                          style={{ padding: '6px', fontSize: '13px' }}
-                        >
-                          <option value="">-- Chọn lô --</option>
-                          {allBatches.filter(b => b.MA_MAT_HANG?.trim() === itemAdder.MA_MAT_HANG?.trim()).map(b => (
-                            <option key={b.MA_LO_HANG} value={b.MA_LO_HANG}>{b.MA_LO_HANG.trim()}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="form-group">
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Số lượng sổ sách</label>
-                        <input 
-                          type="number" 
-                          value={itemAdder.SO_LUONG_SO_SACH} 
-                          onChange={(e) => setItemAdder({ ...itemAdder, SO_LUONG_SO_SACH: parseInt(e.target.value) || 0 })} 
-                          style={{ padding: '6px', fontSize: '13px' }}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Số lượng thực tế</label>
-                        <input 
-                          type="number" 
-                          value={itemAdder.SO_LUONG_THUC_TE} 
-                          onChange={(e) => setItemAdder({ ...itemAdder, SO_LUONG_THUC_TE: parseInt(e.target.value) || 0 })} 
-                          style={{ padding: '6px', fontSize: '13px' }}
-                        />
-                      </div>
-                    </div>
+              <div className="form-group">
+                <label>Ghi chú phiếu kiểm</label>
+                <input name="GHI_CHU" value={phieuForm.GHI_CHU} onChange={handlePhieuChange} />
+              </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
-                      <button type="button" className="btn btn-secondary btn-sm" onClick={handleAddItemToPhieu} style={{ padding: '6px 12px', fontSize: '12px' }}>
-                        Thêm mặt hàng
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {phieuForm.details.length > 0 && (
-                  <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', marginTop: '16px' }}>
-                    <h4 style={{ fontSize: '13px', marginBottom: '8px' }}>Danh sách mặt hàng kiểm kê đối soát</h4>
-                    <table className="data-table" style={{ fontSize: '12px' }}>
-                      <thead>
-                        <tr>
-                          <th>Tên sản phẩm</th><th>Lô</th><th>Vị trí</th><th>Sách tồn</th><th>Kiểm thực</th><th>Chênh lệch</th><th>Tình trạng</th><th style={{ width: '60px' }}>Hành động</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {phieuForm.details.map((item, idx) => (
-                          <tr key={idx}>
-                            <td>{item.TEN_MAT_HANG}</td>
-                            <td>{item.MA_LO_HANG || '---'}</td>
-                            <td>{item.MA_VI_TRI_HE_THONG}</td>
-                            <td><strong>{item.SO_LUONG_SO_SACH}</strong></td>
-                            <td>
-                              <input 
-                                type="number" 
-                                min="0" 
-                                style={{ width: '70px', padding: '4px' }} 
-                                value={item.SO_LUONG_THUC_TE} 
-                                onChange={(e) => handleQtyChange(idx, e.target.value)} 
-                                required
-                              />
-                            </td>
-                            <td>
-                              <strong style={{ 
-                                color: item.SO_LUONG_THUC_TE - item.SO_LUONG_SO_SACH === 0 ? 'var(--text-main)' :
-                                       item.SO_LUONG_THUC_TE - item.SO_LUONG_SO_SACH > 0 ? 'var(--success)' : 'var(--danger)'
-                              }}>
-                                {item.SO_LUONG_THUC_TE - item.SO_LUONG_SO_SACH > 0 ? `+${item.SO_LUONG_THUC_TE - item.SO_LUONG_SO_SACH}` : item.SO_LUONG_THUC_TE - item.SO_LUONG_SO_SACH}
-                              </strong>
-                            </td>
-                            <td>
-                              <select 
-                                style={{ padding: '2px', fontSize: '11px' }} 
-                                value={item.TINH_TRANG_HANG} 
-                                onChange={(e) => handleStatusChange(idx, e.target.value)}
-                              >
-                                <option value="Bình thường">Bình thường</option>
-                                <option value="Hỏng vỏ bao bì">Hỏng bao bì</option>
-                                <option value="Hết hạn sử dụng">Hết hạn</option>
-                                <option value="Mất mát chưa rõ lý do">Mất mát</option>
-                              </select>
-                            </td>
-                            <td>
-                              <button 
-                                type="button" 
-                                className="btn-sm" 
-                                onClick={() => handleRemoveItemFromPhieu(idx)}
-                                style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', fontSize: '11px' }}
-                              >
-                                Xóa
-                              </button>
-                            </td>
-                          </tr>
+              {/* BỘ CHỌN MẶT HÀNG THỦ CÔNG ĐỂ THÊM VÀO PHIẾU */}
+              {phieuForm.MA_DOT_KIEM_KE && (
+                <div style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', padding: '12px', marginTop: '16px' }}>
+                  <h4 style={{ fontSize: '13px', marginBottom: '10px', color: '#3b82f6', fontWeight: 650 }}>Thêm sản phẩm cần kiểm soát thủ công</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                    <div className="form-group">
+                      <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Chọn mặt hàng</label>
+                      <select
+                        value={itemAdder.MA_MAT_HANG}
+                        onChange={(e) => handleProductSelectInAdder(e.target.value)}
+                        style={{ padding: '6px', fontSize: '13px' }}
+                      >
+                        <option value="">-- Chọn mặt hàng --</option>
+                        {allProducts.map(p => (
+                          <option key={p.MA_MAT_HANG} value={p.MA_MAT_HANG}>{p.TEN_MAT_HANG} ({p.MA_MAT_HANG.trim()})</option>
                         ))}
-                      </tbody>
-                    </table>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Vị trí kho thực tế</label>
+                      <select
+                        value={itemAdder.MA_VI_TRI}
+                        onChange={(e) => setItemAdder(prev => ({ ...prev, MA_VI_TRI: e.target.value }))}
+                        style={{ padding: '6px', fontSize: '13px' }}
+                      >
+                        <option value="">-- Chọn vị trí --</option>
+                        {allLocations.map(l => (
+                          <option key={l.MA_VI_TRI} value={l.MA_VI_TRI}>{l.KHU} - {l.DAY} - {l.KE} ({l.MA_VI_TRI.trim()})</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                )}
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowPhieuModal(false)}>Hủy</button>
-                <button type="submit" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Check size={14} /> Xác nhận hoàn tất kiểm
-                </button>
-              </div>
-            </form>
-          </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                    <div className="form-group">
+                      <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Mã lô hàng (nếu có)</label>
+                      <input
+                        value={itemAdder.MA_LO_HANG}
+                        onChange={(e) => setItemAdder(prev => ({ ...prev, MA_LO_HANG: e.target.value }))}
+                        placeholder="Mã lô"
+                        style={{ padding: '6px', fontSize: '13px' }}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Số lượng sổ sách</label>
+                      <input
+                        type="number"
+                        value={itemAdder.SO_LUONG_SO_SACH}
+                        readOnly
+                        style={{ padding: '6px', fontSize: '13px', background: 'rgba(255,255,255,0.05)' }}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Số thực tế kiểm kê</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={itemAdder.SO_LUONG_THUC_TE}
+                        onChange={(e) => setItemAdder(prev => ({ ...prev, SO_LUONG_THUC_TE: e.target.value }))}
+                        style={{ padding: '6px', fontSize: '13px' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Tình trạng hàng hóa</label>
+                    <select
+                      value={itemAdder.TINH_TRANG_HANG}
+                      onChange={(e) => setItemAdder(prev => ({ ...prev, TINH_TRANG_HANG: e.target.value }))}
+                      style={{ padding: '6px', fontSize: '13px' }}
+                    >
+                      <option value="Bình thường">Bình thường</option>
+                      <option value="Hỏng vỏ bao bì">Hỏng bao bì</option>
+                      <option value="Hết hạn sử dụng">Hết hạn</option>
+                      <option value="Mất mát chưa rõ lý do">Mất mát</option>
+                    </select>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={handleAddItemToPhieu}
+                    style={{ width: '100%', padding: '6px', marginTop: '6px' }}
+                  >
+                    Thêm dòng kiểm
+                  </button>
+                </div>
+              )}
+
+              {/* DANH SÁCH CHI TIẾT KIỂM KÊ TRONG PHIẾU */}
+              {phieuForm.details.length > 0 && (
+                <div style={{ marginTop: '20px' }}>
+                  <h4 style={{ fontSize: '13px', marginBottom: '8px' }}>Danh sách sản phẩm kiểm kê ({phieuForm.details.length})</h4>
+                  <table className="data-table" style={{ fontSize: '12px' }}>
+                    <thead>
+                      <tr>
+                        <th>Sản phẩm</th>
+                        <th>Vị trí</th>
+                        <th>Lô</th>
+                        <th>Sổ sách</th>
+                        <th>Thực tế</th>
+                        <th>Lệch</th>
+                        <th>Tình trạng</th>
+                        <th>Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {phieuForm.details.map((item, idx) => (
+                        <tr key={idx}>
+                          <td>{item.TEN_MAT_HANG}</td>
+                          <td>{item.MA_VI_TRI_HE_THONG}</td>
+                          <td>{item.MA_LO_HANG || 'Không'}</td>
+                          <td>{item.SO_LUONG_SO_SACH}</td>
+                          <td>
+                            <input
+                              type="number"
+                              min="0"
+                              style={{ width: '70px', padding: '4px' }}
+                              value={item.SO_LUONG_THUC_TE}
+                              onChange={(e) => handleQtyChange(idx, e.target.value)}
+                              required
+                            />
+                          </td>
+                          <td>
+                            <strong style={{
+                              color: item.SO_LUONG_THUC_TE - item.SO_LUONG_SO_SACH === 0 ? 'var(--text-main)' :
+                                item.SO_LUONG_THUC_TE - item.SO_LUONG_SO_SACH > 0 ? 'var(--success)' : 'var(--danger)'
+                            }}>
+                              {item.SO_LUONG_THUC_TE - item.SO_LUONG_SO_SACH > 0 ? `+${item.SO_LUONG_THUC_TE - item.SO_LUONG_SO_SACH}` : item.SO_LUONG_THUC_TE - item.SO_LUONG_SO_SACH}
+                            </strong>
+                          </td>
+                          <td>
+                            <select
+                              style={{ padding: '2px', fontSize: '11px' }}
+                              value={item.TINH_TRANG_HANG}
+                              onChange={(e) => handleStatusChange(idx, e.target.value)}
+                            >
+                              <option value="Bình thường">Bình thường</option>
+                              <option value="Hỏng vỏ bao bì">Hỏng bao bì</option>
+                              <option value="Hết hạn sử dụng">Hết hạn</option>
+                              <option value="Mất mát chưa rõ lý do">Mất mát</option>
+                            </select>
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="btn-sm"
+                              onClick={() => handleRemoveItemFromPhieu(idx)}
+                              style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', fontSize: '11px' }}
+                            >
+                              Xóa
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={() => setShowPhieuModal(false)}>Hủy</button>
+              <button type="submit" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Check size={14} /> Xác nhận hoàn tất kiểm
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
@@ -817,9 +889,9 @@ function KiemKe() {
                       <td>{detail.SO_LUONG_SO_SACH}</td>
                       <td><strong style={{ color: 'var(--primary)' }}>{detail.SO_LUONG_THUC_TE}</strong></td>
                       <td>
-                        <strong style={{ 
+                        <strong style={{
                           color: detail.CHENH_LECH === 0 ? 'var(--text-main)' :
-                                 detail.CHENH_LECH > 0 ? 'var(--success)' : 'var(--danger)'
+                            detail.CHENH_LECH > 0 ? 'var(--success)' : 'var(--danger)'
                         }}>
                           {detail.CHENH_LECH > 0 ? `+${detail.CHENH_LECH}` : detail.CHENH_LECH}
                         </strong>

@@ -88,6 +88,30 @@ const CanhBaoTonKho = {
       await transaction.rollback();
       throw err;
     }
+  },
+
+  updateStatus: async (maCanhBao, trangThai) => {
+    const pool = await connectDB();
+    return await pool.request()
+      .input("ma", sql.Char(10), maCanhBao)
+      .input("trangThai", sql.NVarChar(50), trangThai)
+      .query(`
+        UPDATE CanhBaoTonKho
+        SET TRANG_THAI_CANH_BAO = @trangThai
+        WHERE MA_CANH_BAO = @ma
+      `);
+  },
+  getPendingPO: async (maMatHang) => {
+    const pool = await connectDB();
+    const result = await pool.request()
+      .input("maMatHang", sql.Char(10), maMatHang)
+      .query(`
+        SELECT dm.MA_DON_MUA, dm.NGAY_DAT, ct.SO_LUONG_DAT, ct.SO_LUONG_DA_NHAP, ct.SO_LUONG_CON_CHO_NHAN
+        FROM DonMuaHang dm
+        INNER JOIN ChiTietDonMuaHang ct ON dm.MA_DON_MUA = ct.MA_DON_MUA
+        WHERE ct.MA_MAT_HANG = @maMatHang AND dm.TRANG_THAI <> N'Nhập đủ' AND ct.SO_LUONG_CON_CHO_NHAN > 0
+      `);
+    return result.recordset;
   }
 };
 module.exports = CanhBaoTonKho;

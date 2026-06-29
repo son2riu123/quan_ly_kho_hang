@@ -5,5 +5,6 @@ const NhiemVuXacMinhCanhBaoController = require("../controllers/NhiemVuXacMinhCa
 router.get("/", NhiemVuXacMinhCanhBaoController.getAll);
 router.get("/:id", NhiemVuXacMinhCanhBaoController.getById);
 router.post("/", NhiemVuXacMinhCanhBaoController.create);
+router.post("/:id/result", NhiemVuXacMinhCanhBaoController.submitResult);
 
 module.exports = router;

@@ -23,6 +23,17 @@ const YeuCauMuaBoSung = {
         INSERT INTO YeuCauMuaBoSung (MA_YEU_CAU_MUA, MA_CANH_BAO, MA_MAT_HANG, MA_KHO, SO_LUONG_DE_XUAT, LY_DO, TRANG_THAI_YEU_CAU, NGUOI_TAO, THOI_DIEM_TAO)
         VALUES (@ma, @cb, @mh, @kho, @sl, @lydo, @trangthai, @nguoitao, @thoidiem)
       `);
+  },
+  updateStatus: async (maYeuCau, trangThai) => {
+    const pool = await connectDB();
+    return await pool.request()
+      .input("ma", sql.Char(10), maYeuCau)
+      .input("trangThai", sql.NVarChar(50), trangThai)
+      .query(`
+        UPDATE YeuCauMuaBoSung
+        SET TRANG_THAI_YEU_CAU = @trangThai
+        WHERE MA_YEU_CAU_MUA = @ma
+      `);
   }
 };
 module.exports = YeuCauMuaBoSung;

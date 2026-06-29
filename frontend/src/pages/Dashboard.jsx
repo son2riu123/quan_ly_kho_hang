@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import { 
@@ -17,14 +18,24 @@ import {
 } from 'lucide-react';
 
 function Dashboard() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
+  const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await api.get('/dashboard/stats');
-        setStats(res.data);
+        const [statsRes, alertsRes] = await Promise.all([
+          api.get('/dashboard/stats'),
+          api.get('/canh-bao-ton-kho')
+        ]);
+        setStats(statsRes.data);
+        // Lọc lấy tối đa 3 cảnh báo chưa xử lý hoặc mới nhất
+        const activeAlerts = (alertsRes.data || [])
+          .filter(a => a.TRANG_THAI_CANH_BAO !== 'Đã xử lý')
+          .slice(0, 3);
+        setAlerts(activeAlerts);
       } catch (err) {
         console.error('Failed to fetch dashboard stats:', err);
       } finally {
@@ -33,27 +44,6 @@ function Dashboard() {
     };
     fetchStats();
   }, []);
-
-  const alerts = [
-    {
-      type: 'critical',
-      title: 'Dầu gội Clear Bạc Hà - Lô LH003',
-      desc: '3 thùng bị va đập gây hỏng vỡ bao bì',
-      time: '2 giờ trước',
-    },
-    {
-      type: 'warning',
-      title: 'Nước rửa chén Sunlight Chanh - Lô LH002',
-      desc: '2 thùng rách bao bì do máy cắt, chờ trả NCC',
-      time: '5 giờ trước',
-    },
-    {
-      type: 'warning',
-      title: 'Bột giặt OMO Comfort - Lô LH007',
-      desc: 'Hạn sử dụng còn 15 ngày, cần xử lý ưu tiên',
-      time: '1 ngày trước',
-    },
-  ];
 
   const recentEntries = [
     { id: 'PNK-2026-105/D1', date: '12/06/2026', supplier: 'Unilever Việt Nam', items: 4, quantity: 37, total: '25,550,000đ' },
@@ -69,7 +59,6 @@ function Dashboard() {
         {/* Bento Cell 1: Hero Storage Status (Spans 2 columns) */}
         <div className="section-card bento-item bento-span-2 bento-hero-card" style={{ marginBottom: 0 }}>
           <div>
-            <span className="badge badge-success" style={{ marginBottom: '12px' }}>Database Connected</span>
             <h2 style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '8px' }}>
               Trạng thái Kho vận & Danh mục
             </h2>
@@ -149,23 +138,35 @@ function Dashboard() {
         <div className="section-card bento-span-2" style={{ marginBottom: 0 }}>
           <div className="section-card-header">
             <h3><Zap size={15} /> Cảnh báo cần xử lý</h3>
-            <button className="btn btn-sm btn-secondary">Xem tất cả</button>
+            <button className="btn btn-sm btn-secondary" onClick={() => navigate('/canhbaoxacminh')}>Xem tất cả</button>
           </div>
           <div className="section-card-body" style={{ padding: '14px' }}>
             <div className="alert-list">
-              {alerts.map((alert, idx) => (
-                <div className={`alert-item ${alert.type}`} key={idx}>
-                  <div className="alert-item-dot" />
-                  <div className="alert-item-content">
-                    <div className="alert-item-title">{alert.title}</div>
-                    <div className="alert-item-desc">{alert.desc}</div>
-                  </div>
-                  <div className="alert-item-time" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                    <Clock size={10} />
-                    {alert.time}
-                  </div>
+              {alerts.length === 0 ? (
+                <div style={{ padding: '12px 6px', fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                  Không có cảnh báo tồn kho nào cần xử lý.
                 </div>
-              ))}
+              ) : (
+                alerts.map((alert, idx) => {
+                  const alertType = alert.MUC_DO_UU_TIEN === 'Cao' ? 'critical' : 'warning';
+                  const titleStr = `${alert.TEN_MAT_HANG || 'Mặt hàng'} (${alert.MA_CANH_BAO.trim()})`;
+                  const descStr = `${alert.LOAI_CANH_BAO || 'Cảnh báo'}: ${alert.MO_TA || 'Yêu cầu kiểm tra đối chiếu tồn thực tế'} (Trạng thái: ${alert.TRANG_THAI_CANH_BAO})`;
+                  const timeStr = alert.THOI_DIEM_PHAT_SINH ? new Date(alert.THOI_DIEM_PHAT_SINH).toLocaleDateString('vi-VN') : 'Mới';
+                  return (
+                    <div className={`alert-item ${alertType}`} key={idx}>
+                      <div className="alert-item-dot" />
+                      <div className="alert-item-content">
+                        <div className="alert-item-title">{titleStr}</div>
+                        <div className="alert-item-desc">{descStr}</div>
+                      </div>
+                      <div className="alert-item-time" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                        <Clock size={10} />
+                        {timeStr}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>

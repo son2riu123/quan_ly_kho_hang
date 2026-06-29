@@ -4,5 +4,6 @@ const YeuCauMuaBoSungController = require("../controllers/YeuCauMuaBoSungControl
 
 router.get("/", YeuCauMuaBoSungController.getAll);
 router.post("/", YeuCauMuaBoSungController.create);
+router.put("/:id/status", YeuCauMuaBoSungController.updateStatus);
 
 module.exports = router;

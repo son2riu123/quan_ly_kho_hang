@@ -87,6 +87,12 @@ function BaoCao() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const handleGlobalSearch = (e) => { setSearch(e.detail || ''); };
+    window.addEventListener('global-search', handleGlobalSearch);
+    return () => window.removeEventListener('global-search', handleGlobalSearch);
+  }, []);
+
   const exportToExcel = (reportType) => {
     let headers = [];
     let rows = [];

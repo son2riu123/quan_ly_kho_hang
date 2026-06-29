@@ -61,6 +61,12 @@ function KiemNghiem() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const handleGlobalSearch = (e) => { setSearch(e.detail || ''); };
+    window.addEventListener('global-search', handleGlobalSearch);
+    return () => window.removeEventListener('global-search', handleGlobalSearch);
+  }, []);
+
   const handleInputChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };

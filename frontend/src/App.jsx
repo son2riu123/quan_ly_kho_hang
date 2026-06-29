@@ -14,6 +14,8 @@ import TheKho from './pages/TheKho';
 import KiemKe from './pages/KiemKe';
 import KiemNghiem from './pages/KiemNghiem';
 import BaoCao from './pages/BaoCao';
+import CaiDat from './pages/CaiDat';
+import CanhBaoXacMinh from './pages/CanhBaoXacMinh';
 import AuthGuard from './middlewares/authGuard';
 
 function App() {
@@ -37,6 +39,8 @@ function App() {
         <Route path="/kiemke" element={<AuthGuard allowedRoles={['Quản lý kho', 'Thủ kho']}><KiemKe /></AuthGuard>} />
         <Route path="/kiemnghiem" element={<AuthGuard allowedRoles={['Quản lý kho', 'Ban giám đốc', 'Nhân viên KCS']}><KiemNghiem /></AuthGuard>} />
         <Route path="/baocao" element={<AuthGuard allowedRoles={['Quản lý kho', 'Ban giám đốc', 'Kế toán kho']}><BaoCao /></AuthGuard>} />
+        <Route path="/caidat" element={<AuthGuard allowedRoles={['Quản lý kho', 'Ban giám đốc']}><CaiDat /></AuthGuard>} />
+        <Route path="/canhbaoxacminh" element={<AuthGuard allowedRoles={['Quản lý kho', 'Ban giám đốc', 'Thủ kho']}><CanhBaoXacMinh /></AuthGuard>} />
       </Routes>
     </Router>
   );

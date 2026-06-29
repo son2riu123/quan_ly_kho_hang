@@ -56,6 +56,12 @@ function PhieuNhapKho() {
 
   useEffect(() => { fetchData(); }, []);
 
+  useEffect(() => {
+    const handleGlobalSearch = (e) => { setSearch(e.detail || ''); };
+    window.addEventListener('global-search', handleGlobalSearch);
+    return () => window.removeEventListener('global-search', handleGlobalSearch);
+  }, []);
+
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSelectPO = async (e) => {

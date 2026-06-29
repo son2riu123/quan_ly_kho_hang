@@ -118,19 +118,52 @@ const HoSoXuLySaiLechTonKho = {
 
   update: async (maHoSo, data) => {
     const pool = await connectDB();
-    await pool.request()
-      .input("maHoSo", sql.Char(10), maHoSo)
-      .input("trangThaiHoSo", sql.NVarChar(30), data.TRANG_THAI_HO_SO)
-      .input("nguoiXuLy", sql.Char(10), data.NGUOI_XU_LY)
-      .input("thoiDiemXuLy", sql.DateTime2, data.THOI_DIEM_XU_LY)
-      .input("ghiChu", sql.NVarChar(255), data.GHI_CHU)
-      .query(`
-        UPDATE HoSoXuLySaiLechTonKho
-        SET TRANG_THAI_HO_SO = @trangThaiHoSo, NGUOI_XU_LY = @nguoiXuLy,
-            THOI_DIEM_XU_LY = @thoiDiemXuLy, GHI_CHU = @ghiChu
-        WHERE MA_HO_SO = @maHoSo
-      `);
-    return { message: "Cập nhật hồ sơ xử lý sai lệch tồn kho thành công" };
+    const transaction = new sql.Transaction(pool);
+    try {
+      await transaction.begin();
+
+      const requestUpdate = new sql.Request(transaction);
+      await requestUpdate
+        .input("maHoSo", sql.Char(10), maHoSo)
+        .input("trangThaiHoSo", sql.NVarChar(30), data.TRANG_THAI_HO_SO)
+        .input("nguoiXuLy", sql.Char(10), data.NGUOI_XU_LY)
+        .input("thoiDiemXuLy", sql.DateTime2, data.THOI_DIEM_XU_LY || new Date())
+        .input("ghiChu", sql.NVarChar(255), data.GHI_CHU)
+        .query(`
+          UPDATE HoSoXuLySaiLechTonKho
+          SET TRANG_THAI_HO_SO = @trangThaiHoSo, NGUOI_XU_LY = @nguoiXuLy,
+              THOI_DIEM_XU_LY = @thoiDiemXuLy, GHI_CHU = @ghiChu
+          WHERE MA_HO_SO = @maHoSo
+        `);
+
+      if (data.TRANG_THAI_HO_SO === 'Đã hoàn thành') {
+        const requestGetDetails = new sql.Request(transaction);
+        const detailsResult = await requestGetDetails
+          .input("maHoSo", sql.Char(10), maHoSo)
+          .query("SELECT * FROM ChiTietSaiLechTonKho WHERE MA_HO_SO = @maHoSo");
+
+        for (let item of detailsResult.recordset) {
+          const requestAdjustStock = new sql.Request(transaction);
+          await requestAdjustStock
+            .input("maMatHang", sql.Char(10), item.MA_MAT_HANG)
+            .input("maViTri", sql.Char(10), item.MA_VI_TRI)
+            .input("maLoHang", sql.Char(10), item.MA_LO_HANG)
+            .input("slThucTe", sql.Int, item.SO_LUONG_THUC_TE)
+            .query(`
+              UPDATE TonTheoViTri
+              SET SO_LUONG = @slThucTe, NGAY_CAP_NHAT_GAN_NHAT = GETDATE()
+              WHERE MA_MAT_HANG = @maMatHang AND MA_VI_TRI = @maViTri
+                AND (MA_LO_HANG = @maLoHang OR (MA_LO_HANG IS NULL AND @maLoHang IS NULL))
+            `);
+        }
+      }
+
+      await transaction.commit();
+      return { success: true, message: "Cập nhật hồ sơ và điều chỉnh tồn kho thành công" };
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
   },
 
   // Bạn có thể cân nhắc viết thêm Transaction cho hàm Delete nếu cần xóa cả Chi Tiết
