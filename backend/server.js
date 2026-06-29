@@ -45,6 +45,13 @@ app.use('/api/dot-kiem-ke', require('./routes/DotKiemKeRoutes'));
 app.use('/api/phieu-tra-nha-cung-cap', require('./routes/PhieuTraNhaCungCapRoutes'));
 app.use('/api/ho-so-xu-lu-hang-loi', require('./routes/HoSoXuLyHangLoiRoutes'));
 app.use('/api/nhiem-vu-kiem-ke', require('./routes/NhiemVuKiemKeRoutes'));
+// 
+app.use('/api/phieu-kiem-ke-xac-minh', require('./routes/PhieuKiemKeXacMinhRoutes'));
+app.use('/api/ho-so-xu-ly-sai-lech-ton-kho', require('./routes/HoSoXuLySaiLechTonKhoRoutes'));
+app.use('/api/tep', require('./routes/TepDinhKemRoutes'));
+app.use('/api/phuong-an-xu-sai-lech', require('./routes/PhuongAnXuLySaiLechRoutes'));
+app.use('/api/nhat-ky-thao-tac', require('./routes/NhatKyThaoTacRoutes'));
+app.use('/api/nhiem-vu-xu-ly-sai-lech', require('./routes/NhiemVuXuLySaiLechRoutes'));
 
 connectDB();
 
