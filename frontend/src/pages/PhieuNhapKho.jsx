@@ -171,7 +171,7 @@ function PhieuNhapKho() {
   return (
     <Layout title="Phiếu nhập kho">
       <div className="page-header">
-        <h2>📥 Quản lý Nhập kho</h2>
+        <h2>Quản lý Nhập kho</h2>
         <button className="btn btn-primary" onClick={openCreate}>
           <Plus size={16} /> Lập phiếu nhập kho
         </button>
@@ -231,7 +231,7 @@ function PhieuNhapKho() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" style={{ maxWidth: '800px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>📥 Lập phiếu nhập kho thực tế</h3>
+              <h3>Lập phiếu nhập kho thực tế</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}><X size={16} /></button>
             </div>
             <form onSubmit={handleSubmit}>
@@ -292,7 +292,7 @@ function PhieuNhapKho() {
                 {/* DANH SÁCH CHI TIẾT MẶT HÀNG NHẬP */}
                 {form.details.length > 0 && (
                   <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', marginTop: '16px' }}>
-                    <h4 style={{ fontSize: '13px', marginBottom: '12px' }}>📦 Danh sách sản phẩm kiểm thực tế</h4>
+                    <h4 style={{ fontSize: '13px', marginBottom: '12px' }}>Danh sách sản phẩm kiểm thực tế</h4>
                     <table className="data-table" style={{ fontSize: '12.5px' }}>
                       <thead>
                         <tr>
@@ -354,7 +354,7 @@ function PhieuNhapKho() {
         <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
           <div className="modal" style={{ maxWidth: '700px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>🔍 Chi tiết phiếu nhập {selectedReceipt.MA_PHIEU_NHAP_KHO}</h3>
+              <h3>Chi tiết phiếu nhập {selectedReceipt.MA_PHIEU_NHAP_KHO}</h3>
               <button className="modal-close" onClick={() => setShowDetailModal(false)}><X size={16} /></button>
             </div>
             <div className="modal-body">

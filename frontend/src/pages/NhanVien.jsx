@@ -38,6 +38,14 @@ function NhanVien() {
 
   useEffect(() => { fetchData(); }, []);
 
+  useEffect(() => {
+    const handleGlobalSearch = (e) => {
+      setSearch(e.detail || '');
+    };
+    window.addEventListener('global-search', handleGlobalSearch);
+    return () => window.removeEventListener('global-search', handleGlobalSearch);
+  }, []);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -88,7 +96,7 @@ function NhanVien() {
   return (
     <Layout title="Nhân viên">
       <div className="page-header">
-        <h2>👤 Danh sách Nhân viên</h2>
+        <h2>Danh sách Nhân viên</h2>
         <div className="page-header-actions">
           <button className="btn btn-primary" onClick={openCreate}>
             <Plus size={16} /> Thêm nhân viên
@@ -168,7 +176,7 @@ function NhanVien() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>{editItem ? '✏️ Chỉnh sửa nhân viên' : '➕ Thêm nhân viên mới'}</h3>
+              <h3>{editItem ? 'Chỉnh sửa nhân viên' : 'Thêm nhân viên mới'}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}><X size={16} /></button>
             </div>
             <form onSubmit={handleSubmit}>

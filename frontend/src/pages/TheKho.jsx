@@ -90,7 +90,7 @@ function TheKho() {
   return (
     <Layout title="Thẻ kho">
       <div className="page-header">
-        <h2>🗂️ Quản lý Thẻ kho hàng hóa</h2>
+        <h2>Quản lý Thẻ kho hàng hóa</h2>
         <button className="btn btn-primary" onClick={openCreate}>
           <Plus size={16} /> Mở thẻ kho mới
         </button>
@@ -148,7 +148,7 @@ function TheKho() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>🗂️ Mở thẻ kho hàng hóa</h3>
+              <h3>Mở thẻ kho hàng hóa</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}><X size={16} /></button>
             </div>
             <form onSubmit={handleSubmit}>
@@ -195,7 +195,7 @@ function TheKho() {
         <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
           <div className="modal" style={{ maxWidth: '800px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>📖 Nhật ký thẻ kho: {selectedCard.TEN_MAT_HANG} ({selectedCard.MA_THE_KHO})</h3>
+              <h3>Nhật ký thẻ kho: {selectedCard.TEN_MAT_HANG} ({selectedCard.MA_THE_KHO})</h3>
               <button className="modal-close" onClick={() => setShowDetailModal(false)}><X size={16} /></button>
             </div>
             <div className="modal-body" style={{ maxHeight: '65vh' }}>

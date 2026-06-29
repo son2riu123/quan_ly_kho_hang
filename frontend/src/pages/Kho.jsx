@@ -66,7 +66,7 @@ function Kho() {
   return (
     <Layout title="Kho bãi">
       <div className="page-header">
-        <h2>🏢 Danh sách Kho hàng</h2>
+        <h2>Danh sách Kho hàng</h2>
         <button className="btn btn-primary" onClick={openCreate}>
           <Plus size={16} /> Thêm kho mới
         </button>
@@ -126,7 +126,7 @@ function Kho() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>{editItem ? '✏️ Sửa đổi thông tin kho' : '➕ Thêm kho lưu trữ mới'}</h3>
+              <h3>{editItem ? 'Sửa đổi thông tin kho' : 'Thêm kho lưu trữ mới'}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}><X size={16} /></button>
             </div>
             <form onSubmit={handleSubmit}>

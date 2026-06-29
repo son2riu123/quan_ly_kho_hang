@@ -39,6 +39,14 @@ function MatHang() {
 
   useEffect(() => { fetchData(); }, []);
 
+  useEffect(() => {
+    const handleGlobalSearch = (e) => {
+      setSearch(e.detail || '');
+    };
+    window.addEventListener('global-search', handleGlobalSearch);
+    return () => window.removeEventListener('global-search', handleGlobalSearch);
+  }, []);
+
   const handleChange = (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setForm({ ...form, [e.target.name]: value });
@@ -76,7 +84,7 @@ function MatHang() {
   return (
     <Layout title="Mặt hàng">
       <div className="page-header">
-        <h2>📦 Danh sách Mặt hàng</h2>
+        <h2>Danh sách Mặt hàng</h2>
         <button className="btn btn-primary" onClick={openCreate}>
           <Plus size={16} /> Thêm mặt hàng
         </button>
@@ -140,7 +148,7 @@ function MatHang() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>{editItem ? '✏️ Chỉnh sửa mặt hàng' : '➕ Thêm mặt hàng mới'}</h3>
+              <h3>{editItem ? 'Chỉnh sửa mặt hàng' : 'Thêm mặt hàng mới'}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}><X size={16} /></button>
             </div>
             <form onSubmit={handleSubmit}>

@@ -147,7 +147,7 @@ function DonMuaHang() {
   return (
     <Layout title="Đơn mua hàng (PO)">
       <div className="page-header">
-        <h2>📋 Quản lý Đơn mua hàng (PO)</h2>
+        <h2>Quản lý Đơn mua hàng (PO)</h2>
         <button className="btn btn-primary" onClick={openCreate}>
           <Plus size={16} /> Lập đơn đặt hàng
         </button>
@@ -260,7 +260,7 @@ function DonMuaHang() {
 
                 {/* THÊM MẶT HÀNG CHI TIẾT */}
                 <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '16px', marginTop: '16px' }}>
-                  <h4 style={{ fontSize: '13px', marginBottom: '12px', color: 'var(--text-main)' }}>📦 Thêm sản phẩm đặt mua</h4>
+                  <h4 style={{ fontSize: '13px', marginBottom: '12px', color: 'var(--text-main)' }}>Thêm sản phẩm đặt mua</h4>
                   <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: '8px', alignItems: 'end' }}>
                     <div className="form-group" style={{ margin: 0 }}>
                       <label>Sản phẩm</label>
@@ -333,7 +333,7 @@ function DonMuaHang() {
         <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
           <div className="modal" style={{ maxWidth: '650px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>🔍 Chi tiết đơn mua {selectedPO.MA_DON_MUA}</h3>
+              <h3>Chi tiết đơn mua {selectedPO.MA_DON_MUA}</h3>
               <button className="modal-close" onClick={() => setShowDetailModal(false)}><X size={16} /></button>
             </div>
             <div className="modal-body">

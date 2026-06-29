@@ -52,7 +52,7 @@ function TonKho() {
   return (
     <Layout title="Tồn kho">
       <div className="page-header">
-        <h2>📈 Thống kê Tồn kho thực tế</h2>
+        <h2>Thống kê Tồn kho thực tế</h2>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button 
             className={`btn ${activeTab === 'summary' ? 'btn-primary' : 'btn-secondary'}`}

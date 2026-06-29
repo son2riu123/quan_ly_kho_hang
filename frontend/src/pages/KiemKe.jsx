@@ -199,7 +199,7 @@ function KiemKe() {
   return (
     <Layout title="Kiểm kê">
       <div className="page-header">
-        <h2>✅ Kiểm kê & Đối soát tồn kho</h2>
+        <h2>Kiểm kê & Đối soát tồn kho</h2>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button className="btn btn-secondary" onClick={openCreateDot}>
             <Plus size={16} /> Lập đợt kiểm kê
@@ -270,7 +270,7 @@ function KiemKe() {
         <div className="modal-overlay" onClick={() => setShowDotModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>➕ Tạo đợt kiểm kê kho bãi mới</h3>
+              <h3>Tạo đợt kiểm kê kho bãi mới</h3>
               <button className="modal-close" onClick={() => setShowDotModal(false)}><X size={16} /></button>
             </div>
             <form onSubmit={handleDotSubmit}>
@@ -331,7 +331,7 @@ function KiemKe() {
         <div className="modal-overlay" onClick={() => setShowPhieuModal(false)}>
           <div className="modal" style={{ maxWidth: '800px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>📝 Lập phiếu kiểm kê thực tế</h3>
+              <h3>Lập phiếu kiểm kê thực tế</h3>
               <button className="modal-close" onClick={() => setShowPhieuModal(false)}><X size={16} /></button>
             </div>
             <form onSubmit={handlePhieuSubmit}>
@@ -373,7 +373,7 @@ function KiemKe() {
 
                 {phieuForm.details.length > 0 && (
                   <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', marginTop: '16px' }}>
-                    <h4 style={{ fontSize: '13px', marginBottom: '8px' }}>📋 Danh sách mặt hàng kiểm kê đối soát</h4>
+                    <h4 style={{ fontSize: '13px', marginBottom: '8px' }}>Danh sách mặt hàng kiểm kê đối soát</h4>
                     <table className="data-table" style={{ fontSize: '12px' }}>
                       <thead>
                         <tr>
@@ -440,7 +440,7 @@ function KiemKe() {
         <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
           <div className="modal" style={{ maxWidth: '650px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>🔍 Chi tiết đợt kiểm kê {selectedDot.MA_DOT_KIEM_KE}</h3>
+              <h3>Chi tiết đợt kiểm kê {selectedDot.MA_DOT_KIEM_KE}</h3>
               <button className="modal-close" onClick={() => setShowDetailModal(false)}><X size={16} /></button>
             </div>
             <div className="modal-body">
@@ -500,7 +500,7 @@ function KiemKe() {
         <div className="modal-overlay" onClick={() => setShowPhieuDetailModal(false)}>
           <div className="modal" style={{ maxWidth: '700px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>🔍 Chi tiết phiếu kiểm kê {selectedPhieu.MA_PHIEU_KIEM_KE}</h3>
+              <h3>Chi tiết phiếu kiểm kê {selectedPhieu.MA_PHIEU_KIEM_KE}</h3>
               <button className="modal-close" onClick={() => setShowPhieuDetailModal(false)}><X size={16} /></button>
             </div>
             <div className="modal-body" style={{ maxHeight: '65vh' }}>

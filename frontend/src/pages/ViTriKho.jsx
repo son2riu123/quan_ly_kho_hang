@@ -97,7 +97,7 @@ function ViTriKho() {
   return (
     <Layout title="Vị trí kho">
       <div className="page-header">
-        <h2>📍 Quản lý Vị trí kho lưu trữ</h2>
+        <h2>Quản lý Vị trí kho lưu trữ</h2>
         <button className="btn btn-primary" onClick={openCreate}>
           <Plus size={16} /> Thêm vị trí mới
         </button>
@@ -174,7 +174,7 @@ function ViTriKho() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>{editItem ? '✏️ Sửa vị trí kho' : '➕ Thêm vị trí kho mới'}</h3>
+              <h3>{editItem ? 'Sửa vị trí kho' : 'Thêm vị trí kho mới'}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}><X size={16} /></button>
             </div>
             <form onSubmit={handleSubmit}>
