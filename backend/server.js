@@ -54,7 +54,19 @@ app.use('/api/phuong-an-xu-sai-lech', require('./routes/PhuongAnXuLySaiLechRoute
 app.use('/api/nhat-ky-thao-tac', require('./routes/NhatKyThaoTacRoutes'));
 app.use('/api/nhiem-vu-xu-ly-sai-lech', require('./routes/NhiemVuXuLySaiLechRoutes'));
 
+// [NEW] Auth & Cảnh báo tồn kho
+app.use('/api/taikhoan', require('./routes/taiKhoanRoutes'));
+app.use('/api/cau-hinh-dinh-muc-ton', require('./routes/cauHinhDinhMucTonRoutes'));
+app.use('/api/canh-bao-ton-kho', require('./routes/canhBaoTonKhoRoutes'));
+app.use('/api/nhiem-vu-xac-minh-canh-bao', require('./routes/NhiemVuXacMinhCanhBaoRoutes'));
+app.use('/api/phuong-an-xu-ly-canh-bao', require('./routes/PhuongAnXuLyCanhBaoRoutes'));
+app.use('/api/yeu-cau-mua-bo-sung', require('./routes/YeuCauMuaBoSungRoutes'));
+
 connectDB();
+
+// [NEW] Init Cron Jobs
+const { initCronJobs } = require("./services/cronJob");
+initCronJobs();
 
 app.listen(port, () => {
   console.log(`Server đang chạy tại http://localhost:${port}`);

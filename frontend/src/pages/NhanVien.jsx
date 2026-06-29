@@ -9,7 +9,8 @@ import {
   User, 
   X, 
   Check, 
-  Loader2 
+  Loader2,
+  Key
 } from 'lucide-react';
 
 function NhanVien() {
@@ -21,6 +22,15 @@ function NhanVien() {
   const [form, setForm] = useState({
     MA_NHAN_VIEN: '', HO_TEN: '', CHUC_VU: '', SO_DIEN_THOAI: '',
     EMAIL: '', TRANG_THAI: 'Đang làm việc'
+  });
+
+  // State cho Modal Cấp tài khoản
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [accountLoading, setAccountLoading] = useState(false);
+  const [isResetPassword, setIsResetPassword] = useState(false);
+  const [accountForm, setAccountForm] = useState({
+    maTaiKhoan: '', maNhanVien: '', tenDangNhap: '', matKhau: '', ghiChu: ''
   });
 
   const fetchData = async () => {
@@ -84,7 +94,61 @@ function NhanVien() {
       await api.delete(`/nhanvien/${ma}`);
       fetchData();
     } catch (err) {
-      alert('Lỗi xóa: ' + err.message);
+      const errMsg = err.response?.data?.message || 'Lỗi xóa';
+      const errDetail = err.response?.data?.error || err.message;
+      alert(`${errMsg}\nChi tiết: ${errDetail}`);
+    }
+  };
+
+  const openGrantAccount = (item) => {
+    setSelectedEmployee(item);
+    const formattedMaNV = (item.MA_NHAN_VIEN || '').trim();
+    if (item.TEN_DANG_NHAP) {
+      setIsResetPassword(true);
+      setAccountForm({
+        maTaiKhoan: item.MA_TAI_KHOAN || '',
+        maNhanVien: formattedMaNV,
+        tenDangNhap: item.TEN_DANG_NHAP,
+        matKhau: '',
+        ghiChu: ''
+      });
+    } else {
+      setIsResetPassword(false);
+      setAccountForm({
+        maTaiKhoan: `TK_${formattedMaNV}`,
+        maNhanVien: formattedMaNV,
+        tenDangNhap: '',
+        matKhau: '',
+        ghiChu: `Tài khoản cấp cho ${item.HO_TEN}`
+      });
+    }
+    setShowAccountModal(true);
+  };
+
+  const handleAccountFormChange = (e) => {
+    setAccountForm({ ...accountForm, [e.target.name]: e.target.value });
+  };
+
+  const handleGrantAccountSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setAccountLoading(true);
+      if (isResetPassword) {
+        const res = await api.put('/taikhoan/reset-password', {
+          maTaiKhoan: accountForm.maTaiKhoan,
+          matKhau: accountForm.matKhau
+        });
+        alert(res.data.message || 'Đặt lại mật khẩu thành công!');
+      } else {
+        const res = await api.post('/taikhoan/register', accountForm);
+        alert(res.data.message || 'Cấp tài khoản thành công!');
+      }
+      setShowAccountModal(false);
+      fetchData();
+    } catch (err) {
+      alert('Thất bại: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setAccountLoading(false);
     }
   };
 
@@ -156,6 +220,14 @@ function NhanVien() {
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '4px' }}>
+                        <button 
+                          className="btn btn-primary-link btn-sm" 
+                          onClick={() => openGrantAccount(item)} 
+                          title={item.TEN_DANG_NHAP ? "Đặt lại mật khẩu" : "Cấp tài khoản"} 
+                          style={{ color: item.TEN_DANG_NHAP ? '#16a34a' : '#2563eb', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'inline-flex', alignItems: 'center' }}
+                        >
+                          <Key size={14} />
+                        </button>
                         <button className="btn btn-warning-link btn-sm" onClick={() => openEdit(item)} title="Sửa">
                           <Edit3 size={14} />
                         </button>
@@ -232,6 +304,51 @@ function NhanVien() {
                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Hủy bỏ</button>
                 <button type="submit" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Check size={14} /> {editItem ? 'Cập nhật' : 'Lưu lại'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showAccountModal && (
+        <div className="modal-overlay" onClick={() => setShowAccountModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{isResetPassword ? `Đặt lại mật khẩu: ${selectedEmployee?.HO_TEN}` : `Cấp tài khoản: ${selectedEmployee?.HO_TEN}`}</h3>
+              <button className="modal-close" onClick={() => setShowAccountModal(false)}><X size={16} /></button>
+            </div>
+            <form onSubmit={handleGrantAccountSubmit}>
+              <div className="modal-body">
+                {!isResetPassword && (
+                  <div className="form-group">
+                    <label>Mã tài khoản</label>
+                    <input name="maTaiKhoan" value={accountForm.maTaiKhoan} onChange={handleAccountFormChange}
+                      required placeholder="VD: TK_NV001" />
+                  </div>
+                )}
+                <div className="form-group">
+                  <label>Tên đăng nhập</label>
+                  <input name="tenDangNhap" value={accountForm.tenDangNhap} disabled={isResetPassword} onChange={handleAccountFormChange}
+                    required placeholder="Nhập tên đăng nhập" />
+                </div>
+                <div className="form-group">
+                  <label>{isResetPassword ? 'Mật khẩu mới' : 'Mật khẩu'}</label>
+                  <input name="matKhau" type="password" value={accountForm.matKhau} onChange={handleAccountFormChange}
+                    required placeholder="Nhập mật khẩu" />
+                </div>
+                {!isResetPassword && (
+                  <div className="form-group">
+                    <label>Ghi chú</label>
+                    <input name="ghiChu" value={accountForm.ghiChu} onChange={handleAccountFormChange}
+                      placeholder="Ghi chú thêm nếu có" />
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowAccountModal(false)}>Hủy bỏ</button>
+                <button type="submit" className="btn btn-primary" disabled={accountLoading}>
+                  {accountLoading ? 'Đang xử lý...' : isResetPassword ? 'Đặt lại mật khẩu' : 'Cấp tài khoản'}
                 </button>
               </div>
             </form>

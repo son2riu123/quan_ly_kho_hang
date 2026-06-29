@@ -1,4 +1,5 @@
 const PhuongAnXuLySaiLech = require("../models/PhuongAnXuLySaiLech");
+const discrepancyService = require("../services/discrepancyService");
 
 const PhuongAnXuLySaiLechController = {
   // Lấy danh sách tất cả phương án
@@ -47,6 +48,14 @@ const PhuongAnXuLySaiLechController = {
   // Cập nhật trạng thái phương án (Dùng khi phê duyệt hoặc thay đổi trạng thái)
   update: async (req, res) => {
     try {
+      // Nếu là hành động Phê duyệt phương án -> Chạy qua Service Giao dịch
+      if (req.body.TRANG_THAI_PHUONG_AN === 'Đã phê duyệt') {
+        const nguoiDuyet = req.user ? req.user.maNhanVien : 'NV_ADMIN';
+        const result = await discrepancyService.processDiscrepancyResolution(req.params.id, nguoiDuyet);
+        return res.status(200).json(result);
+      }
+      
+      // Nếu cập nhật bình thường
       const result = await PhuongAnXuLySaiLech.update(req.params.id, req.body);
       res.status(200).json({ success: true, message: result.message });
     } catch (err) {

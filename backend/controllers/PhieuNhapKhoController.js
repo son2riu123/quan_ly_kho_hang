@@ -1,5 +1,5 @@
 const PhieuNhapKho = require('../models/PhieuNhapKho');
-
+const inventoryService = require('../services/inventoryService');
 const PhieuNhapKhoController = {
   getAll: async (req, res) => {
     try {
@@ -22,10 +22,17 @@ const PhieuNhapKhoController = {
 
   create: async (req, res) => {
     try {
+      // 1. Lưu thông tin Phiếu Nhập Kho (Giao dịch 1)
       const result = await PhieuNhapKho.create(req.body);
-      res.status(201).json(result);
+      
+      // 2. Kích hoạt giao dịch cập nhật Tồn kho liên hoàn (Giao dịch 2)
+      // Lấy người ghi từ JWT token nếu có (mặc định NV_ADMIN để tránh lỗi nếu test ko token)
+      const nguoiGhi = req.user ? req.user.maNhanVien : 'NV_ADMIN'; 
+      await inventoryService.processImport(req.body, nguoiGhi);
+
+      res.status(201).json({ ...result, message: "Nhập kho và cập nhật thẻ kho thành công!" });
     } catch (error) {
-      res.status(500).json({ message: "Lỗi tạo phiếu nhập kho", error: error.message });
+      res.status(500).json({ message: "Lỗi tạo phiếu nhập kho hoặc cập nhật tồn", error: error.message });
     }
   }
 };

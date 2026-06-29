@@ -4,7 +4,11 @@ const connectDB = require("../config/database");
 const NhanVien = {
   getAll: async () => {
     const pool = await connectDB();
-    const result = await pool.request().query("SELECT * FROM NhanVien");
+    const result = await pool.request().query(`
+      SELECT n.*, t.MA_TAI_KHOAN, t.TEN_DANG_NHAP, t.TRANG_THAI_TAI_KHOAN
+      FROM NhanVien n
+      LEFT JOIN TaiKhoan t ON n.MA_NHAN_VIEN = t.MA_NHAN_VIEN
+    `);
     return result.recordset;
   },
 
@@ -52,10 +56,26 @@ const NhanVien = {
 
   delete: async (maNhanVien) => {
     const pool = await connectDB();
-    await pool.request()
-      .input("maNhanVien", sql.Char(10), maNhanVien)
-      .query("DELETE FROM NhanVien WHERE MA_NHAN_VIEN = @maNhanVien");
-    return { message: "Xóa nhân viên thành công" };
+    const transaction = new sql.Transaction(pool);
+    try {
+      await transaction.begin();
+      
+      // 1. Xóa tài khoản liên kết trước (nếu có)
+      await new sql.Request(transaction)
+        .input("maNhanVien", sql.Char(10), maNhanVien)
+        .query("DELETE FROM TaiKhoan WHERE MA_NHAN_VIEN = @maNhanVien");
+
+      // 2. Xóa nhân viên
+      await new sql.Request(transaction)
+        .input("maNhanVien", sql.Char(10), maNhanVien)
+        .query("DELETE FROM NhanVien WHERE MA_NHAN_VIEN = @maNhanVien");
+
+      await transaction.commit();
+      return { message: "Xóa nhân viên thành công" };
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 };
 

@@ -28,6 +28,23 @@ backend/
 ├── package.json       # Quản lý danh sách thư viện và thông tin dự án
 └── server.js          # Điểm khởi chạy ứng dụng (Entry point)
 
+frontend/
+├── public/            # Chứa các tài nguyên tĩnh công khai (logo, favicon...)
+├── src/
+│   ├── assets/        # Hình ảnh, font chữ, icon cục bộ...
+│   ├── components/    # Thành phần dùng chung ở mọi trang (Sidebar, Header, Layout)
+│   ├── pages/         # Từng màn hình chức năng độc lập (Dashboard, Nhập kho, Kiểm kê...)
+│   ├── services/      # Kết nối API (Axios/Fetch) đến Backend
+│   ├── utils/         # Các hàm format định dạng tiện ích (tiền tệ, ngày giờ...)
+│   ├── App.css        # CSS giao diện macOS 26
+│   ├── App.jsx        # Định tuyến (Router) và cấu trúc ứng dụng React
+│   ├── index.css      # CSS cơ bản toàn cục
+│   └── main.jsx       # Điểm neo React Component vào index.html
+├── index.html         # Trang HTML gốc
+├── package.json       # Quản lý thư viện phụ thuộc của Frontend
+├── vite.config.js     # Cấu hình bundler Vite
+└── .gitignore         # Chặn đẩy các thư mục như node_modules lên Git
+```
 
 🚀 Hướng dẫn cài đặt (Dành cho thành viên trong nhóm)
 Để chạy dự án này trên máy cá nhân, các thành viên vui lòng thực hiện đúng theo 4 bước sau:
