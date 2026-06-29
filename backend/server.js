@@ -27,6 +27,32 @@ app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 app.use('/api/danh-muc-vi-tri-khuyen-nghi', require('./routes/DanhMucViTriKhuyenNghiRoutes'));
 app.use('/api/quy-cach-dong-goi', require('./routes/QuyCachDongGoiRoutes'));
 app.use('/api/nhom-kiem-ke', require('./routes/NhomKiemKeRoutes'));
+app.use('/api/chung-tu-giao-hang', require('./routes/ChungTuGiaoHangRoutes'));
+app.use('/api/bien-ban-giao-nhan', require('./routes/BienBanGiaoNhanRoutes'));
+app.use('/api/bien-ban-kiem-nghiem', require('./routes/BienBanKiemNghiemRoutes'));
+app.use('/api/ho-so-dot-nhap', require('./routes/HoSoDotNhapRoutes'));
+//
+app.use('/api/lo-hang', require('./routes/LoHangRoutes'));
+app.use('/api/bien-dong-ton-kho', require('./routes/BienDongTonKhoRoutes'));
+app.use('/api/phieu-bao-cao-hang-loi', require('./routes/PhieuBaoCaoHangLoiRoutes'));
+app.use('/api/phieu-cach-ly-hang', require('./routes/PhieuCachLyHangRoutes'));
+app.use('/api/phuong-an-xu-ly-hang-loi', require('./routes/PhuongAnXuLyHangLoiRoutes'));
+app.use('/api/lenh-xu-ly-hang-loi', require('./routes/LenhXuLyHangLoiRoutes'));
+app.use('/api/bien-ban-tieu-huy', require('./routes/BienBanTieuHuyRoutes'));
+// 
+app.use('/api/phieu-kiem-ke', require('./routes/PhieuKiemKeRoutes'));
+app.use('/api/bien-ban-kiem-ke', require('./routes/BienBanKiemKeRoutes'));
+app.use('/api/dot-kiem-ke', require('./routes/DotKiemKeRoutes'));
+app.use('/api/phieu-tra-nha-cung-cap', require('./routes/PhieuTraNhaCungCapRoutes'));
+app.use('/api/ho-so-xu-lu-hang-loi', require('./routes/HoSoXuLyHangLoiRoutes'));
+app.use('/api/nhiem-vu-kiem-ke', require('./routes/NhiemVuKiemKeRoutes'));
+// 
+app.use('/api/phieu-kiem-ke-xac-minh', require('./routes/PhieuKiemKeXacMinhRoutes'));
+app.use('/api/ho-so-xu-ly-sai-lech-ton-kho', require('./routes/HoSoXuLySaiLechTonKhoRoutes'));
+app.use('/api/tep', require('./routes/TepDinhKemRoutes'));
+app.use('/api/phuong-an-xu-sai-lech', require('./routes/PhuongAnXuLySaiLechRoutes'));
+app.use('/api/nhat-ky-thao-tac', require('./routes/NhatKyThaoTacRoutes'));
+app.use('/api/nhiem-vu-xu-ly-sai-lech', require('./routes/NhiemVuXuLySaiLechRoutes'));
 
 connectDB();
 
