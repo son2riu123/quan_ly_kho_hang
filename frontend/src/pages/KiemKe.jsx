@@ -10,7 +10,8 @@ import {
   Loader2, 
   CheckSquare,
   AlertTriangle,
-  FileCheck
+  FileCheck,
+  Download
 } from 'lucide-react';
 
 function KiemKe() {
@@ -30,6 +31,22 @@ function KiemKe() {
   const [stockDetails, setStockDetails] = useState([]);
   const [search, setSearch] = useState('');
 
+  // Các danh mục để chọn thêm mặt hàng thủ công
+  const [allProducts, setAllProducts] = useState([]);
+  const [allLocations, setAllLocations] = useState([]);
+  const [allBatches, setAllBatches] = useState([]);
+
+  // Form tạm để thêm một mặt hàng vào chi tiết kiểm kê
+  const [itemAdder, setItemAdder] = useState({
+    MA_MAT_HANG: '',
+    MA_LO_HANG: '',
+    MA_VI_TRI: '',
+    SO_LUONG_SO_SACH: 0,
+    SO_LUONG_THUC_TE: 0,
+    TINH_TRANG_HANG: 'Bình thường',
+    GHI_CHU: ''
+  });
+
   const [dotForm, setDotForm] = useState({
     MA_DOT_KIEM_KE: '', TEN_DOT_KIEM_KE: '', MA_KHO: '', 
     LOAI_KIEM_KE: 'Đột xuất', PHAM_VI_KIEM_KE: 'Toàn bộ kho', 
@@ -44,14 +61,20 @@ function KiemKe() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [dotsRes, khoRes, empRes] = await Promise.all([
+      const [dotsRes, khoRes, empRes, itemsRes, locsRes, batchesRes] = await Promise.all([
         api.get('/kiemke/dot'),
         api.get('/kho'),
-        api.get('/nhanvien')
+        api.get('/nhanvien'),
+        api.get('/mathang'),
+        api.get('/vitrikho'),
+        api.get('/lo-hang').catch(() => ({ data: [] })) // Fallback nếu chưa có API lô hàng
       ]);
       setDots(dotsRes.data);
       setWarehouses(khoRes.data);
       setEmployees(empRes.data);
+      setAllProducts(itemsRes.data);
+      setAllLocations(locsRes.data);
+      setAllBatches(batchesRes.data || []);
     } catch (err) {
       console.error(err);
       setDots([]);
@@ -75,17 +98,22 @@ function KiemKe() {
     try {
       // Tải thông tin tồn kho hiện tại để đối chiếu số sách
       const stockRes = await api.get('/tonkho');
-      const dotInfo = dots.find(d => d.MA_DOT_KIEM_KE === maDot);
+      const dotInfo = dots.find(d => d.MA_DOT_KIEM_KE.trim() === maDot.trim());
       
+      if (!dotInfo) {
+        alert('Không tìm thấy thông tin đợt kiểm kê!');
+        return;
+      }
+
       // Lọc tồn kho của kho tương ứng với đợt kiểm kê
-      const activeStock = stockRes.data.filter(item => item.MA_KHO === dotInfo.MA_KHO);
+      const activeStock = stockRes.data.filter(item => item.MA_KHO.trim() === dotInfo.MA_KHO.trim());
 
       const itemsToAudit = activeStock.map(item => ({
         MA_CHI_TIET_KIEM_KE: 'KK' + Math.floor(1000 + Math.random() * 9000),
-        MA_MAT_HANG: item.MA_MAT_HANG,
+        MA_MAT_HANG: item.MA_MAT_HANG.trim(),
         TEN_MAT_HANG: item.TEN_MAT_HANG,
-        MA_LO_HANG: item.MA_LO_HANG,
-        MA_VI_TRI_HE_THONG: item.MA_VI_TRI,
+        MA_LO_HANG: item.MA_LO_HANG ? item.MA_LO_HANG.trim() : null,
+        MA_VI_TRI_HE_THONG: item.MA_VI_TRI.trim(),
         TRANG_THAI_TON_HE_THONG: item.TRANG_THAI_TON,
         TRANG_THAI_TON_THUC_TE: item.TRANG_THAI_TON,
         SO_LUONG_SO_SACH: item.SO_LUONG,
@@ -103,6 +131,94 @@ function KiemKe() {
     } catch (err) {
       alert('Lỗi tải dữ liệu sổ sách: ' + err.message);
     }
+  };
+
+  const handleProductSelectInAdder = async (maMatHang) => {
+    if (!maMatHang) {
+      setItemAdder(prev => ({ ...prev, MA_MAT_HANG: '', SO_LUONG_SO_SACH: 0, SO_LUONG_THUC_TE: 0 }));
+      return;
+    }
+    
+    try {
+      const stockRes = await api.get('/tonkho');
+      const dotInfo = dots.find(d => d.MA_DOT_KIEM_KE.trim() === phieuForm.MA_DOT_KIEM_KE.trim());
+      
+      if (!dotInfo) {
+        alert('Vui lòng chọn Đợt kiểm kê trước!');
+        return;
+      }
+
+      // Tìm xem mặt hàng này có tồn ở kho tương ứng của Đợt kiểm kê này không
+      const match = stockRes.data.find(item => 
+        item.MA_MAT_HANG.trim() === maMatHang.trim() && 
+        item.MA_KHO.trim() === dotInfo.MA_KHO.trim()
+      );
+      
+      setItemAdder(prev => ({
+        ...prev,
+        MA_MAT_HANG: maMatHang,
+        MA_LO_HANG: match ? (match.MA_LO_HANG || '').trim() : '',
+        MA_VI_TRI: match ? (match.MA_VI_TRI || '').trim() : '',
+        SO_LUONG_SO_SACH: match ? match.SO_LUONG : 0,
+        SO_LUONG_THUC_TE: match ? match.SO_LUONG : 0
+      }));
+    } catch (err) {
+      console.error(err);
+      setItemAdder(prev => ({ ...prev, MA_MAT_HANG: maMatHang }));
+    }
+  };
+
+  const handleAddItemToPhieu = () => {
+    if (!phieuForm.MA_DOT_KIEM_KE) return alert('Vui lòng chọn đợt kiểm kê trước!');
+    if (!itemAdder.MA_MAT_HANG) return alert('Vui lòng chọn mặt hàng');
+    if (!itemAdder.MA_VI_TRI) return alert('Vui lòng chọn vị trí');
+    
+    const product = allProducts.find(p => p.MA_MAT_HANG.trim() === itemAdder.MA_MAT_HANG.trim());
+    
+    const newItem = {
+      MA_CHI_TIET_KIEM_KE: 'KK' + Math.floor(1000 + Math.random() * 9000),
+      MA_MAT_HANG: itemAdder.MA_MAT_HANG.trim(),
+      TEN_MAT_HANG: product ? product.TEN_MAT_HANG : 'Sản phẩm mới',
+      MA_LO_HANG: itemAdder.MA_LO_HANG.trim() || null,
+      MA_VI_TRI_HE_THONG: itemAdder.MA_VI_TRI.trim(),
+      TRANG_THAI_TON_HE_THONG: 'Hoạt động',
+      TRANG_THAI_TON_THUC_TE: 'Hoạt động',
+      SO_LUONG_SO_SACH: parseInt(itemAdder.SO_LUONG_SO_SACH) || 0,
+      SO_LUONG_THUC_TE: parseInt(itemAdder.SO_LUONG_THUC_TE) || 0,
+      CHENH_LECH: (parseInt(itemAdder.SO_LUONG_THUC_TE) || 0) - (parseInt(itemAdder.SO_LUONG_SO_SACH) || 0),
+      TINH_TRANG_HANG: itemAdder.TINH_TRANG_HANG,
+      GHI_CHU: itemAdder.GHI_CHU
+    };
+
+    setPhieuForm(prev => {
+      // Tránh trùng lặp cùng sản phẩm ở cùng vị trí trong details
+      const filteredDetails = prev.details.filter(item => 
+        !(item.MA_MAT_HANG.trim() === newItem.MA_MAT_HANG && item.MA_VI_TRI_HE_THONG.trim() === newItem.MA_VI_TRI_HE_THONG)
+      );
+      return {
+        ...prev,
+        details: [...filteredDetails, newItem]
+      };
+    });
+
+    // Reset adder form
+    setItemAdder({
+      MA_MAT_HANG: '',
+      MA_LO_HANG: '',
+      MA_VI_TRI: '',
+      SO_LUONG_SO_SACH: 0,
+      SO_LUONG_THUC_TE: 0,
+      TINH_TRANG_HANG: 'Bình thường',
+      GHI_CHU: ''
+    });
+  };
+
+  const handleRemoveItemFromPhieu = (idx) => {
+    setPhieuForm(prev => {
+      const details = [...prev.details];
+      details.splice(idx, 1);
+      return { ...prev, details };
+    });
   };
 
   const handleQtyChange = (idx, value) => {
@@ -191,6 +307,85 @@ function KiemKe() {
     }
   };
 
+  const exportToExcel = () => {
+    const title = 'DANH SÁCH CÁC ĐỢT KIỂM KÊ VÀ ĐỐI SOÁT TỒN KHO';
+    const filename = 'Danh_sach_Kiem_ke_Doi_soat.xls';
+    const headers = ['Mã đợt', 'Tên đợt kiểm kê', 'Kho thực hiện', 'Loại kiểm kê', 'Phạm vi', 'Thời điểm bắt đầu', 'Trạng thái', 'Ghi chú'];
+    const rows = filteredDots.map(item => [
+      item.MA_DOT_KIEM_KE.trim(),
+      item.TEN_DOT_KIEM_KE,
+      item.TEN_KHO,
+      item.LOAI_KIEM_KE,
+      item.PHAM_VI_KIEM_KE,
+      new Date(item.THOI_DIEM_BAT_DAU).toLocaleString('vi-VN'),
+      item.TRANG_THAI_DOT,
+      item.GHI_CHU || ''
+    ]);
+
+    let html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8" />
+        <style>
+          .header-org { font-family: 'Times New Roman'; font-size: 12px; }
+          .title { font-family: 'Times New Roman'; font-size: 16px; font-weight: bold; text-align: center; }
+          th { font-family: 'Times New Roman'; background-color: #f2f2f2; font-weight: bold; border: 0.5px solid #000; text-align: center; }
+          td { font-family: 'Times New Roman'; border: 0.5px solid #000; text-align: left; }
+          .center { text-align: center; }
+        </style>
+      </head>
+      <body>
+        <table style="width: 100%;">
+          <tr>
+            <td colspan="3" style="border: none;" class="header-org">
+              <strong>TỔNG CÔNG TY KHO VẬN LOGISTICS</strong><br/>
+              Bộ phận: Quản lý Kho bãi & Kiểm soát Chất lượng
+            </td>
+            <td colspan="5" style="border: none;"></td>
+          </tr>
+          <tr><td colspan="8" style="border: none; height: 15px;"></td></tr>
+          <tr>
+            <td colspan="8" class="title" style="border: none;">
+              ${title}<br/>
+              <span style="font-size: 12px; font-weight: normal; font-style: italic;">Ngày xuất: ${new Date().toLocaleString('vi-VN')}</span>
+            </td>
+          </tr>
+          <tr><td colspan="8" style="border: none; height: 10px;"></td></tr>
+        </table>
+        
+        <table>
+          <thead>
+            <tr>
+              ${headers.map(h => `<th>${h}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `
+              <tr>
+                ${row.map((cell, idx) => {
+                  let cellClass = '';
+                  if (idx === 0 || idx === 5 || idx === 6) cellClass = 'class="center"';
+                  return `<td ${cellClass}>${cell !== null && cell !== undefined ? cell : ''}</td>`;
+                }).join('')}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const filteredDots = dots.filter(item =>
     (item.TEN_DOT_KIEM_KE || '').toLowerCase().includes(search.toLowerCase()) ||
     (item.MA_DOT_KIEM_KE || '').toLowerCase().includes(search.toLowerCase())
@@ -201,6 +396,13 @@ function KiemKe() {
       <div className="page-header">
         <h2>Kiểm kê & Đối soát tồn kho</h2>
         <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            className="btn btn-secondary" 
+            style={{ background: '#10b981', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}
+            onClick={exportToExcel}
+          >
+            <Download size={16} /> Xuất Excel
+          </button>
           <button className="btn btn-secondary" onClick={openCreateDot}>
             <Plus size={16} /> Lập đợt kiểm kê
           </button>
@@ -371,13 +573,88 @@ function KiemKe() {
                   <input name="GHI_CHU" value={phieuForm.GHI_CHU} onChange={handlePhieuChange} />
                 </div>
 
+                {/* BỘ CHỌN MẶT HÀNG THỦ CÔNG ĐỂ THÊM VÀO PHIẾU */}
+                {phieuForm.MA_DOT_KIEM_KE && (
+                  <div style={{ border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', padding: '12px', marginTop: '16px' }}>
+                    <h4 style={{ fontSize: '13px', marginBottom: '10px', color: '#3b82f6', fontWeight: 650 }}>Thêm sản phẩm cần kiểm soát thủ công</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                      <div className="form-group">
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Chọn mặt hàng</label>
+                        <select 
+                          value={itemAdder.MA_MAT_HANG} 
+                          onChange={(e) => handleProductSelectInAdder(e.target.value)}
+                          style={{ padding: '6px', fontSize: '13px' }}
+                        >
+                          <option value="">-- Chọn mặt hàng --</option>
+                          {allProducts.map(p => (
+                            <option key={p.MA_MAT_HANG} value={p.MA_MAT_HANG}>{p.TEN_MAT_HANG} ({p.MA_MAT_HANG.trim()})</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Vị trí kho lưu trữ</label>
+                        <select 
+                          value={itemAdder.MA_VI_TRI} 
+                          onChange={(e) => setItemAdder({ ...itemAdder, MA_VI_TRI: e.target.value })}
+                          style={{ padding: '6px', fontSize: '13px' }}
+                        >
+                          <option value="">-- Chọn vị trí --</option>
+                          {allLocations.map(l => (
+                            <option key={l.MA_VI_TRI} value={l.MA_VI_TRI}>{l.MA_VI_TRI.trim()} ({l.TEN_VI_TRI})</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                      <div className="form-group">
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Mã lô hàng (nếu có)</label>
+                        <select 
+                          value={itemAdder.MA_LO_HANG} 
+                          onChange={(e) => setItemAdder({ ...itemAdder, MA_LO_HANG: e.target.value })}
+                          style={{ padding: '6px', fontSize: '13px' }}
+                        >
+                          <option value="">-- Chọn lô --</option>
+                          {allBatches.filter(b => b.MA_MAT_HANG?.trim() === itemAdder.MA_MAT_HANG?.trim()).map(b => (
+                            <option key={b.MA_LO_HANG} value={b.MA_LO_HANG}>{b.MA_LO_HANG.trim()}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Số lượng sổ sách</label>
+                        <input 
+                          type="number" 
+                          value={itemAdder.SO_LUONG_SO_SACH} 
+                          onChange={(e) => setItemAdder({ ...itemAdder, SO_LUONG_SO_SACH: parseInt(e.target.value) || 0 })} 
+                          style={{ padding: '6px', fontSize: '13px' }}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Số lượng thực tế</label>
+                        <input 
+                          type="number" 
+                          value={itemAdder.SO_LUONG_THUC_TE} 
+                          onChange={(e) => setItemAdder({ ...itemAdder, SO_LUONG_THUC_TE: parseInt(e.target.value) || 0 })} 
+                          style={{ padding: '6px', fontSize: '13px' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+                      <button type="button" className="btn btn-secondary btn-sm" onClick={handleAddItemToPhieu} style={{ padding: '6px 12px', fontSize: '12px' }}>
+                        Thêm mặt hàng
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {phieuForm.details.length > 0 && (
                   <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px', marginTop: '16px' }}>
                     <h4 style={{ fontSize: '13px', marginBottom: '8px' }}>Danh sách mặt hàng kiểm kê đối soát</h4>
                     <table className="data-table" style={{ fontSize: '12px' }}>
                       <thead>
                         <tr>
-                          <th>Tên sản phẩm</th><th>Lô</th><th>Vị trí</th><th>Sách tồn</th><th>Kiểm thực</th><th>Chênh lệch</th><th>Tình trạng</th>
+                          <th>Tên sản phẩm</th><th>Lô</th><th>Vị trí</th><th>Sách tồn</th><th>Kiểm thực</th><th>Chênh lệch</th><th>Tình trạng</th><th style={{ width: '60px' }}>Hành động</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -416,6 +693,16 @@ function KiemKe() {
                                 <option value="Hết hạn sử dụng">Hết hạn</option>
                                 <option value="Mất mát chưa rõ lý do">Mất mát</option>
                               </select>
+                            </td>
+                            <td>
+                              <button 
+                                type="button" 
+                                className="btn-sm" 
+                                onClick={() => handleRemoveItemFromPhieu(idx)}
+                                style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', fontSize: '11px' }}
+                              >
+                                Xóa
+                              </button>
                             </td>
                           </tr>
                         ))}
