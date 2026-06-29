@@ -52,6 +52,8 @@ app.use('/api/tep', require('./routes/TepDinhKemRoutes'));
 app.use('/api/phuong-an-xu-sai-lech', require('./routes/PhuongAnXuLySaiLechRoutes'));
 app.use('/api/nhat-ky-thao-tac', require('./routes/NhatKyThaoTacRoutes'));
 app.use('/api/nhiem-vu-xu-ly-sai-lech', require('./routes/NhiemVuXuLySaiLechRoutes'));
+// 
+// app.use('/api/auth', require('./routes/authRoutes'));
 
 connectDB();
 
