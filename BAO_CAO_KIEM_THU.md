@@ -73,7 +73,7 @@
 | **RBAC-01** | Truy cập trang `/nhanvien` chưa đăng nhập | - | Chuyển hướng về trang `/login` | ✅ Pass |
 | **RBAC-02** | Truy cập trang `/nhanvien` đã đăng nhập | `Quản lý kho` | Truy cập thành công | ✅ Pass |
 | **RBAC-03** | Truy cập trang `/nhanvien` đã đăng nhập | `Ban giám đốc` | Truy cập thành công | ✅ Pass |
-| **RBAC-04** | Truy cập trang `/nhanvien` đã đăng nhập | `Thủ kho` | Bị từ chối truy cập (Hiển thị lỗi 403 hoặc trang "Không có quyền") | ✅ Pass |
+| **RBAC-04** | Truy cập trang `/nhanvien` đã đăng nhập | `Thủ kho` | Truy cập thành công | ✅ Pass |
 | **RBAC-05**| Đăng nhập với tài khoản/mật khẩu sai | - | Hiển thị thông báo lỗi "Tài khoản hoặc mật khẩu không chính xác" | ✅ Pass |
 
 ### Module 2: Quản lý Nhập kho (Nghiệp vụ & API)
