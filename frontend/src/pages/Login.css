@@ -1,0 +1,327 @@
+/* =====================================================
+   Login.css — Vercel/Geist Design System Style
+   Supports Light & Dark Modes seamlessly via CSS variables
+   ===================================================== */
+
+.login-root {
+  position: relative;
+  width: 100vw;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--bg-app);
+  font-family: var(--font-sans);
+  transition: background var(--transition);
+}
+
+/* Subtle background grid pattern for that premium developer tool look */
+.login-root::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+html.dark .login-root::before {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+/* Hide legacy background image assets */
+.login-bg,
+.login-bg-overlay,
+.login-glow {
+  display: none;
+}
+
+/* Card wrapper + entry animation */
+.login-card-wrapper {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: loginSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes loginSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Geist card */
+.login-card {
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  padding: 32px 32px 28px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+/* Logo */
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.login-logo-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.login-logo-icon svg {
+  color: var(--text-main) !important;
+}
+
+.login-logo-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.login-logo-name {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+  color: var(--text-main);
+}
+
+.login-logo-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+  letter-spacing: 0.01em;
+}
+
+/* Heading */
+.login-heading {
+  margin-bottom: 24px;
+}
+
+.login-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--text-main);
+  margin: 0 0 6px;
+  line-height: 1.2;
+}
+
+.login-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Error banner */
+.login-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--danger-light);
+  border: 1px solid rgba(238, 0, 0, 0.15);
+  color: var(--danger);
+  font-size: 12.5px;
+  margin-bottom: 18px;
+  animation: loginSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Form */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.login-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-size: 13.5px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  box-sizing: border-box;
+}
+
+.login-input::placeholder {
+  color: var(--text-muted);
+}
+
+.login-input:focus {
+  border-color: var(--text-main);
+  box-shadow: 0 0 0 1px var(--text-main);
+}
+
+.login-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Password wrapper */
+.login-input-wrap {
+  position: relative;
+}
+
+.login-input--pass {
+  padding-right: 36px;
+}
+
+.login-toggle-pass {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: color 0.12s ease, background 0.12s ease;
+}
+
+.login-toggle-pass:hover {
+  color: var(--text-main);
+  background: var(--bg-hover);
+}
+
+/* Submit button */
+.login-btn {
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--bg-card);
+  background: var(--text-main);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.login-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.login-btn:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.login-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.login-btn--loading {
+  pointer-events: none;
+}
+
+/* Spinner */
+.login-spinner {
+  animation: loginSpin 0.8s linear infinite;
+}
+
+@keyframes loginSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Footer note */
+.login-footer-note {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.login-footer-note strong {
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+/* Role hint bar */
+.login-role-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 2px 0;
+}
+
+.login-role-tag {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2px 8px;
+  transition: color 0.12s, background 0.12s;
+}
+
+.login-role-tag:hover {
+  color: var(--text-main);
+  background: var(--border-color);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 24px 20px 20px;
+  }
+}
