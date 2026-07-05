@@ -279,10 +279,13 @@ function DonMuaHang() {
                     <select value={selectedReqId} onChange={handleSelectRequisition}>
                       <option value="">-- Không liên kết --</option>
                       {requisitions
-                        .filter(r => r.TRANG_THAI_YEU_CAU === 'Chờ duyệt' || r.TRANG_THAI_YEU_CAU === 'Chờ xử lý' || r.TRANG_THAI_YEU_CAU === 'Chờ xác minh')
+                        .filter(r => {
+                          const st = r.TRANG_THAI_YEU_CAU?.trim();
+                          return st === 'Chờ duyệt' || st === 'Đã tiếp nhận' || st === 'Đã gửi đề xuất' || st === 'Chờ xử lý';
+                        })
                         .map(r => (
                           <option key={r.MA_YEU_CAU_MUA} value={r.MA_YEU_CAU_MUA.trim()}>
-                            {r.MA_YEU_CAU_MUA.trim()} - MH: {r.MA_MAT_HANG.trim()} (SL: {r.SO_LUONG_DE_XUAT})
+                            {r.MA_YEU_CAU_MUA.trim()} - MH: {r.TEN_MAT_HANG || r.MA_MAT_HANG.trim()} (SL: {r.SO_LUONG_DE_XUAT})
                           </option>
                         ))
                       }

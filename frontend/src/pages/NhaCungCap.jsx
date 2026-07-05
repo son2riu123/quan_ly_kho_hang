@@ -65,8 +65,12 @@ function NhaCungCap() {
 
   const handleDelete = async (ma) => {
     if (!window.confirm('Bạn có chắc muốn xóa nhà cung cấp này?')) return;
-    try { await api.delete(`/nhacungcap/${ma}`); fetchData(); }
-    catch (err) { alert('Lỗi xóa: ' + err.message); }
+    try { 
+      await api.delete(`/nhacungcap/${ma}`); 
+      fetchData(); 
+    } catch (err) { 
+      alert('Lỗi xóa: ' + (err.response?.data?.message || err.message)); 
+    }
   };
 
   const filtered = data.filter(item =>

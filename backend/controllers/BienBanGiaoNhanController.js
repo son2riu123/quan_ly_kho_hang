@@ -25,9 +25,11 @@ const BienBanGiaoNhanController = {
 
   create: async (req, res) => {
     try {
+      console.log("BBGN payload received:", req.body);
       const result = await BienBanGiaoNhan.create(req.body);
       res.status(201).json(result);
     } catch (error) {
+      console.error("SQL ERROR in BBGN create:", error);
       res.status(500).json({ message: error.message });
     }
   },

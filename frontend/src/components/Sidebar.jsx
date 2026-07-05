@@ -15,7 +15,9 @@ import {
   ShieldCheck,
   FileText,
   Settings,
-  ShieldAlert
+  ShieldAlert,
+  AlertTriangle,
+  ShoppingCart
 } from 'lucide-react';
 
 // Khai báo menu kèm theo danh sách vai trò (roles) được quyền nhìn thấy
@@ -38,7 +40,9 @@ const menuItems = [
   {
     section: 'Nghiệp vụ nhập',
     items: [
+      { path: '/yeucaumuabosung', icon: ShoppingCart, label: 'Yêu cầu mua sắm', roles: ['Quản lý kho', 'Ban giám đốc', 'Nhân viên mua hàng'] },
       { path: '/donmuahang', icon: FilePlus, label: 'Đơn mua hàng', roles: ['Quản lý kho', 'Ban giám đốc', 'Nhân viên mua hàng'] },
+      { path: '/bienbangiaonhan', icon: ClipboardCheck, label: 'Biên bản giao nhận', roles: ['Quản lý kho', 'Thủ kho', 'Kế toán kho'] },
       { path: '/phieunhapkho', icon: ArrowDownToLine, label: 'Phiếu nhập kho', roles: ['Quản lý kho', 'Thủ kho', 'Kế toán kho'] },
       { path: '/kiemnghiem', icon: ShieldCheck, label: 'Kiểm nghiệm KCS', roles: ['Quản lý kho', 'Ban giám đốc', 'Nhân viên KCS'] },
       { path: '/thekho', icon: Database, label: 'Thẻ kho', roles: ['Quản lý kho', 'Thủ kho', 'Kế toán kho', 'Ban giám đốc'] },
@@ -51,6 +55,8 @@ const menuItems = [
       { path: '/vitrikho', icon: Navigation, label: 'Vị trí kho', roles: ['Quản lý kho', 'Thủ kho', 'Kế toán kho'] },
       { path: '/kiemke', icon: ClipboardCheck, label: 'Kiểm kê', roles: ['Quản lý kho', 'Thủ kho'] },
       { path: '/canhbaoxacminh', icon: ShieldAlert, label: 'Cảnh báo & Xác minh', roles: ['Quản lý kho', 'Thủ kho', 'Ban giám đốc'] },
+      { path: '/xulysailech', icon: AlertTriangle, label: 'Xử lý sai lệch', roles: ['Quản lý kho', 'Thủ kho', 'Ban giám đốc'] },
+      { path: '/xulyhangloi', icon: ShieldAlert, label: 'Xử lý hàng lỗi', roles: ['Quản lý kho', 'Thủ kho', 'Ban giám đốc'] },
       { path: '/baocao', icon: FileText, label: 'Báo cáo tổng hợp', roles: ['Quản lý kho', 'Ban giám đốc', 'Kế toán kho'] },
     ]
   },
@@ -58,6 +64,7 @@ const menuItems = [
     section: 'Cấu hình',
     items: [
       { path: '/caidat', icon: Settings, label: 'Cài đặt hệ thống', roles: ['Quản lý kho', 'Ban giám đốc'] },
+      { path: '/cauhinhdinhmuc', icon: Settings, label: 'Cấu hình định mức', roles: ['Quản lý kho', 'Ban giám đốc'] },
     ]
   }
 ];

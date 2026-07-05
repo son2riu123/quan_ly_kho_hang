@@ -10,6 +10,7 @@ const FEATURES = [
   { name: 'Quản lý Kho bãi', path: '/kho', roles: ['Quản lý kho', 'Ban giám đốc'], keywords: ['kho hang', 'kho bai', 'warehouse', 'danh sach kho'] },
   { name: 'Quản lý Mặt hàng', path: '/mathang', roles: ['Quản lý kho', 'Ban giám đốc', 'Thủ kho'], keywords: ['mat hang', 'san pham', 'hang hoa', 'product', 'item'] },
   { name: 'Đơn mua hàng (PO)', path: '/donmuahang', roles: ['Quản lý kho', 'Ban giám đốc', 'Nhân viên mua hàng'], keywords: ['don mua hang', 'po', 'purchase order', 'dat hang', 'mua sam'] },
+  { name: 'Biên bản giao nhận', path: '/bienbangiaonhan', roles: ['Quản lý kho', 'Thủ kho', 'Kế toán kho'], keywords: ['bien ban', 'giao nhan', 'bbgn', 'doi chieu', 'kiem hang'] },
   { name: 'Phiếu nhập kho', path: '/phieunhapkho', roles: ['Quản lý kho', 'Thủ kho', 'Kế toán kho'], keywords: ['phieu nhap', 'nhap kho', 'nhap hang', 'grn'] },
   { name: 'Vị trí kho lưu trữ', path: '/vitrikho', roles: ['Quản lý kho', 'Thủ kho', 'Kế toán kho'], keywords: ['vi tri', 'location', 'khu', 'day', 'ke'] },
   { name: 'Tồn kho theo vị trí', path: '/tonkho', roles: ['Quản lý kho', 'Thủ kho', 'Kế toán kho', 'Ban giám đốc'], keywords: ['ton kho', 'ton theo vi tri', 'so luong ton', 'stock'] },

@@ -31,11 +31,38 @@ const BienBanGiaoNhan = {
     const transaction = new sql.Transaction(pool);
     await transaction.begin();
     try {
+      let maChungTuGiao = (!data.MA_CHUNG_TU_GIAO || data.MA_CHUNG_TU_GIAO.trim() === '') ? null : data.MA_CHUNG_TU_GIAO.trim();
+
+      // AUTO-CREATE ChungTuGiaoHang if it doesn't exist
+      if (maChungTuGiao) {
+        const checkRequest = new sql.Request(transaction);
+        const checkResult = await checkRequest
+          .input("ma", sql.Char(10), maChungTuGiao)
+          .query("SELECT MA_CHUNG_TU_GIAO FROM ChungTuGiaoHang WHERE MA_CHUNG_TU_GIAO = @ma");
+          
+        if (checkResult.recordset.length === 0) {
+          const newMaChungTu = "CTG" + Math.floor(100000 + Math.random() * 900000).toString().substring(0, 7);
+          const insertCTG = new sql.Request(transaction);
+          await insertCTG
+            .input("maCTG", sql.Char(10), newMaChungTu)
+            .input("soChungTu", sql.NVarChar(50), maChungTuGiao)
+            .input("maDonMua", sql.Char(10), data.MA_DON_MUA.trim())
+            .input("ngayGiao", sql.Date, data.NGAY_LAP)
+            .input("nguoiGiao", sql.NVarChar(100), data.NGUOI_GIAO || null)
+            .input("trangThai", sql.NVarChar(30), 'Đã giao')
+            .query(`
+              INSERT INTO ChungTuGiaoHang (MA_CHUNG_TU_GIAO, SO_CHUNG_TU_BEN_GIAO, MA_DON_MUA, NGAY_GIAO, NGUOI_GIAO, TRANG_THAI)
+              VALUES (@maCTG, @soChungTu, @maDonMua, @ngayGiao, @nguoiGiao, @trangThai)
+            `);
+          maChungTuGiao = newMaChungTu;
+        }
+      }
+
       const requestMaster = new sql.Request(transaction);
       await requestMaster
         .input("maBienBanGiaoNhan", sql.Char(10), data.MA_BIEN_BAN_GIAO_NHAN.trim())
         .input("maDonMua", sql.Char(10), data.MA_DON_MUA.trim())
-        .input("maChungTuGiao", sql.Char(10), data.MA_CHUNG_TU_GIAO ? data.MA_CHUNG_TU_GIAO.trim() : null)
+        .input("maChungTuGiao", sql.Char(10), maChungTuGiao)
         .input("ngayLap", sql.DateTime, data.NGAY_LAP)
         .input("maThuKho", sql.Char(10), data.MA_THU_KHO.trim())
         .input("nguoiGiao", sql.NVarChar(100), data.NGUOI_GIAO || null)
@@ -86,11 +113,37 @@ const BienBanGiaoNhan = {
     const transaction = new sql.Transaction(pool);
     await transaction.begin();
     try {
+      let maChungTuGiao = (!data.MA_CHUNG_TU_GIAO || data.MA_CHUNG_TU_GIAO.trim() === '') ? null : data.MA_CHUNG_TU_GIAO.trim();
+
+      if (maChungTuGiao) {
+        const checkRequest = new sql.Request(transaction);
+        const checkResult = await checkRequest
+          .input("ma", sql.Char(10), maChungTuGiao)
+          .query("SELECT MA_CHUNG_TU_GIAO FROM ChungTuGiaoHang WHERE MA_CHUNG_TU_GIAO = @ma");
+          
+        if (checkResult.recordset.length === 0) {
+          const newMaChungTu = "CTG" + Math.floor(100000 + Math.random() * 900000).toString().substring(0, 7);
+          const insertCTG = new sql.Request(transaction);
+          await insertCTG
+            .input("maCTG", sql.Char(10), newMaChungTu)
+            .input("soChungTu", sql.NVarChar(50), maChungTuGiao)
+            .input("maDonMua", sql.Char(10), data.MA_DON_MUA.trim())
+            .input("ngayGiao", sql.Date, data.NGAY_LAP)
+            .input("nguoiGiao", sql.NVarChar(100), data.NGUOI_GIAO || null)
+            .input("trangThai", sql.NVarChar(30), 'Đã giao')
+            .query(`
+              INSERT INTO ChungTuGiaoHang (MA_CHUNG_TU_GIAO, SO_CHUNG_TU_BEN_GIAO, MA_DON_MUA, NGAY_GIAO, NGUOI_GIAO, TRANG_THAI)
+              VALUES (@maCTG, @soChungTu, @maDonMua, @ngayGiao, @nguoiGiao, @trangThai)
+            `);
+          maChungTuGiao = newMaChungTu;
+        }
+      }
+
       const requestMaster = new sql.Request(transaction);
       const result = await requestMaster
         .input("maBienBanGiaoNhan", sql.Char(10), maBienBanGiaoNhan.trim())
         .input("maDonMua", sql.Char(10), data.MA_DON_MUA.trim())
-        .input("maChungTuGiao", sql.Char(10), data.MA_CHUNG_TU_GIAO ? data.MA_CHUNG_TU_GIAO.trim() : null)
+        .input("maChungTuGiao", sql.Char(10), maChungTuGiao)
         .input("ngayLap", sql.DateTime, data.NGAY_LAP)
         .input("maThuKho", sql.Char(10), data.MA_THU_KHO.trim())
         .input("nguoiGiao", sql.NVarChar(100), data.NGUOI_GIAO || null)

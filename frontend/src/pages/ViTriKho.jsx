@@ -141,17 +141,14 @@ function ViTriKho() {
                     <td>{item.TEN_KHO}</td>
                     <td><span className="badge badge-info">{item.KHU || '---'}</span></td>
                     <td>
-                      {item.DAY ? `Dãy ${item.DAY}` : ''} 
-                      {item.KE ? ` - Kệ ${item.KE}` : ''} 
-                      {item.TANG ? ` - Tầng ${item.TANG}` : ''} 
-                      {item.O ? ` - Ô ${item.O}` : ''}
+                      {[item.DAY, item.KE, item.TANG, item.O].filter(Boolean).join(' - ')}
                     </td>
                     <td>{item.LOAI_VI_TRI}</td>
                     <td>{item.SUC_CHUA}</td>
                     <td>{item.DIEU_KIEN_BAO_QUAN || '---'}</td>
                     <td>
                       <span className={`badge ${
-                        item.TRANG_THAI_VI_TRI === 'Trống' ? 'badge-success' : 
+                        (item.TRANG_THAI_VI_TRI === 'Trống' || item.TRANG_THAI_VI_TRI === 'Sẵn sàng') ? 'badge-success' : 
                         item.TRANG_THAI_VI_TRI === 'Đầy' ? 'badge-danger' : 'badge-warning'
                       }`}>
                         {item.TRANG_THAI_VI_TRI}

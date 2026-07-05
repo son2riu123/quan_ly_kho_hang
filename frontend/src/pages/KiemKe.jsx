@@ -112,7 +112,7 @@ function KiemKe() {
       }
 
       // Lọc tồn kho của kho tương ứng với đợt kiểm kê
-      const activeStock = stockRes.data.filter(item => item.MA_KHO.trim() === dotInfo.MA_KHO.trim());
+      const activeStock = stockRes.data.filter(item => item.MA_KHO && dotInfo.MA_KHO && item.MA_KHO.trim() === dotInfo.MA_KHO.trim());
 
       const itemsToAudit = activeStock.map(item => ({
         MA_CHI_TIET_KIEM_KE: 'KK' + Math.floor(1000 + Math.random() * 9000),
@@ -157,7 +157,7 @@ function KiemKe() {
       // Tìm xem mặt hàng này có tồn ở kho tương ứng của Đợt kiểm kê này không
       const match = stockRes.data.find(item =>
         item.MA_MAT_HANG.trim() === maMatHang.trim() &&
-        item.MA_KHO.trim() === dotInfo.MA_KHO.trim()
+        item.MA_KHO && dotInfo.MA_KHO && item.MA_KHO.trim() === dotInfo.MA_KHO.trim()
       );
 
       setItemAdder(prev => ({
@@ -171,6 +171,37 @@ function KiemKe() {
     } catch (err) {
       console.error(err);
       setItemAdder(prev => ({ ...prev, MA_MAT_HANG: maMatHang }));
+    }
+  };
+
+  const handleLocationSelectInAdder = async (maViTri) => {
+    setItemAdder(prev => ({ ...prev, MA_VI_TRI: maViTri }));
+    if (!itemAdder.MA_MAT_HANG || !maViTri) return;
+
+    try {
+      const stockRes = await api.get('/tonkho');
+      const match = stockRes.data.find(item =>
+        item.MA_MAT_HANG.trim() === itemAdder.MA_MAT_HANG.trim() &&
+        item.MA_VI_TRI.trim() === maViTri.trim()
+      );
+      
+      if (match) {
+        setItemAdder(prev => ({
+          ...prev,
+          MA_LO_HANG: (match.MA_LO_HANG || '').trim(),
+          SO_LUONG_SO_SACH: match.SO_LUONG,
+          SO_LUONG_THUC_TE: match.SO_LUONG
+        }));
+      } else {
+        setItemAdder(prev => ({
+          ...prev,
+          MA_LO_HANG: '',
+          SO_LUONG_SO_SACH: 0,
+          SO_LUONG_THUC_TE: 0
+        }));
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -354,7 +385,7 @@ function KiemKe() {
       setShowPhieuModal(false);
       fetchData();
     } catch (err) {
-      alert('Lỗi lập phiếu kiểm kê: ' + (err.response?.data?.message || err.message));
+      alert('Lỗi lập phiếu kiểm kê: ' + (err.response?.data?.error || err.response?.data?.message || err.message));
     }
   };
 
@@ -558,7 +589,7 @@ function KiemKe() {
                 <label>Người lập đợt</label>
                 <select name="NGUOI_LAP" value={dotForm.NGUOI_LAP} onChange={handleDotChange} required>
                   <option value="">-- Chọn người lập --</option>
-                  {employees.filter(e => e.TRANG_THAI === 'Đang làm' && e.CHUC_VU !== 'KCS' && (e.CHUC_VU === 'Quản lý kho' || e.CHUC_VU === 'Nhân viên kiểm kê')).map(e => (
+                  {employees.filter(e => e.TRANG_THAI === 'Đang làm việc' && (e.CHUC_VU === 'Quản lý kho' || e.CHUC_VU === 'Thủ kho')).map(e => (
                     <option key={e.MA_NHAN_VIEN} value={e.MA_NHAN_VIEN}>{e.HO_TEN} ({e.CHUC_VU})</option>
                   ))}
                 </select>
@@ -608,7 +639,7 @@ function KiemKe() {
                   <label>Người kiểm kê phụ trách</label>
                   <select name="NGUOI_PHU_TRACH" value={phieuForm.NGUOI_PHU_TRACH} onChange={handlePhieuChange} required>
                     <option value="">-- Chọn người phụ trách --</option>
-                    {employees.filter(e => e.TRANG_THAI === 'Đang làm' && e.CHUC_VU !== 'KCS' && (e.CHUC_VU === 'Thủ kho' || e.CHUC_VU === 'Nhân viên kiểm kê')).map(e => (
+                    {employees.filter(e => e.TRANG_THAI === 'Đang làm việc' && (e.CHUC_VU === 'Thủ kho' || e.CHUC_VU === 'Kiểm kê')).map(e => (
                       <option key={e.MA_NHAN_VIEN} value={e.MA_NHAN_VIEN}>{e.HO_TEN} ({e.CHUC_VU})</option>
                     ))}
                   </select>
@@ -646,13 +677,18 @@ function KiemKe() {
                       <label style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Vị trí kho thực tế</label>
                       <select
                         value={itemAdder.MA_VI_TRI}
-                        onChange={(e) => setItemAdder(prev => ({ ...prev, MA_VI_TRI: e.target.value }))}
+                        onChange={(e) => handleLocationSelectInAdder(e.target.value)}
                         style={{ padding: '6px', fontSize: '13px' }}
                       >
                         <option value="">-- Chọn vị trí --</option>
-                        {allLocations.map(l => (
-                          <option key={l.MA_VI_TRI} value={l.MA_VI_TRI}>{l.KHU} - {l.DAY} - {l.KE} ({l.MA_VI_TRI.trim()})</option>
-                        ))}
+                        {allLocations
+                          .filter(l => {
+                            const dotInfo = dots.find(d => d.MA_DOT_KIEM_KE.trim() === phieuForm.MA_DOT_KIEM_KE.trim());
+                            return dotInfo ? l.MA_KHO?.trim() === dotInfo.MA_KHO?.trim() : true;
+                          })
+                          .map(l => (
+                            <option key={l.MA_VI_TRI} value={l.MA_VI_TRI}>{l.KHU} - {l.DAY} - {l.KE} ({l.MA_VI_TRI.trim()})</option>
+                          ))}
                       </select>
                     </div>
                   </div>
