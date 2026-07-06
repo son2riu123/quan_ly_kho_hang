@@ -10,7 +10,6 @@ const authMiddleware = (req, res, next) => {
   const token = authHeader.split(" ")[1];
 
   try {
-    // Sử dụng utils để giải mã thay vì tự viết logic
     const decoded = jwtUtils.verifyToken(token);
     req.user = decoded;
     next();

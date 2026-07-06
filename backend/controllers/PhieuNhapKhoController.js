@@ -32,6 +32,7 @@ const PhieuNhapKhoController = {
 
       res.status(201).json({ ...result, message: "Nhập kho và cập nhật thẻ kho thành công!" });
     } catch (error) {
+      console.error("SQL ERROR:", error);
       res.status(500).json({ message: "Lỗi tạo phiếu nhập kho hoặc cập nhật tồn", error: error.message });
     }
   }

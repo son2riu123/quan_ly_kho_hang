@@ -26,6 +26,26 @@ const BienBanKiemNghiem = {
     };
   },
 
+  getByBBGN: async (maBienBanGiaoNhan) => {
+    const pool = await connectDB();
+    const masterResult = await pool.request()
+      .input("maBienBanGiaoNhan", sql.Char(10), maBienBanGiaoNhan.trim())
+      .query("SELECT TOP 1 * FROM BienBanKiemNghiem WHERE MA_BIEN_BAN_GIAO_NHAN = @maBienBanGiaoNhan ORDER BY NGAY_LAP DESC");
+    
+    if (!masterResult.recordset[0]) return null;
+    
+    const kcs = masterResult.recordset[0];
+    const detailResult = await pool.request()
+      .input("maBienBanKiemNghiem", sql.Char(10), kcs.MA_BIEN_BAN_KIEM_NGHIEM.trim())
+      .query("SELECT * FROM ChiTietBienBanKiemNghiem WHERE MA_BIEN_BAN_KIEM_NGHIEM = @maBienBanKiemNghiem");
+    
+    return {
+      ...kcs,
+      CHI_TIET: detailResult.recordset
+    };
+  },
+
+
   create: async (data) => {
     const pool = await connectDB();
     const transaction = new sql.Transaction(pool);

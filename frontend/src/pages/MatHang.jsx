@@ -71,8 +71,12 @@ function MatHang() {
 
   const handleDelete = async (ma) => {
     if (!window.confirm('Bạn có chắc muốn xóa mặt hàng này?')) return;
-    try { await api.delete(`/mathang/${ma}`); fetchData(); }
-    catch (err) { alert('Lỗi xóa: ' + err.message); }
+    try { 
+      await api.delete(`/mathang/${ma}`); 
+      fetchData(); 
+    } catch (err) { 
+      alert('Lỗi xóa: ' + (err.response?.data?.message || err.message)); 
+    }
   };
 
   const filtered = data.filter(item =>
@@ -156,7 +160,7 @@ function MatHang() {
                 <div className="form-row">
                   <div className="form-group">
                     <label>Mã mặt hàng</label>
-                    <input name="MA_MAT_HANG" value={form.MA_MAT_HANG} onChange={handleChange} required disabled={!!editItem} placeholder="VD: VT01" />
+                    <input name="MA_MAT_HANG" value={form.MA_MAT_HANG} onChange={handleChange} required disabled={!!editItem} placeholder="VD: MH001" />
                   </div>
                   <div className="form-group">
                     <label>Tên mặt hàng</label>

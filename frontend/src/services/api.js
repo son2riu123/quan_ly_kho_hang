@@ -1,7 +1,21 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:3000/api';
+  }
+  // Tự động nhận diện nếu dùng VS Code Dev Tunnels
+  if (hostname.endsWith('.devtunnels.ms')) {
+    const backendHostname = hostname.replace(/-[0-9]+/, '-3000');
+    return `https://${backendHostname}/api`;
+  }
+  // Trường hợp dùng mạng LAN (ví dụ: 192.168.x.x)
+  return `http://${hostname}:3000/api`;
+};
+
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api', 
+  baseURL: getBaseURL(), 
   headers: {
     'Content-Type': 'application/json'
   }

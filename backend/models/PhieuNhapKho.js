@@ -73,6 +73,27 @@ const PhieuNhapKho = {
       if (data.details && data.details.length > 0) {
         for (let i = 0; i < data.details.length; i++) {
           const detail = data.details[i];
+          // Tự động tạo Lô hàng nếu chưa tồn tại
+          if (detail.MA_LO_HANG) {
+            const checkLoRequest = new sql.Request(transaction);
+            const checkLo = await checkLoRequest
+              .input("maLo", sql.Char(10), detail.MA_LO_HANG.trim())
+              .query("SELECT MA_LO_HANG FROM LoHang WHERE MA_LO_HANG = @maLo");
+            
+            if (checkLo.recordset.length === 0) {
+              const insertLoRequest = new sql.Request(transaction);
+              await insertLoRequest
+                .input("maLo", sql.Char(10), detail.MA_LO_HANG.trim())
+                .input("maMatHang", sql.Char(10), detail.MA_MAT_HANG.trim())
+                .input("ngayNhap", sql.DateTime, data.NGAY_LAP || new Date())
+                .input("maPhieu", sql.Char(10), data.MA_PHIEU_NHAP_KHO.trim())
+                .query(`
+                  INSERT INTO LoHang (MA_LO_HANG, MA_MAT_HANG, NGAY_SAN_XUAT, HAN_SU_DUNG, NGAY_NHAP, MA_PHIEU_NHAP_KHO, TRANG_THAI_LO)
+                  VALUES (@maLo, @maMatHang, DATEADD(month, -1, @ngayNhap), DATEADD(year, 1, @ngayNhap), @ngayNhap, @maPhieu, N'Bình thường')
+                `);
+            }
+          }
+
           const requestDetail = new sql.Request(transaction);
           await requestDetail
             .input("maChiTiet", sql.Char(10), detail.MA_CHI_TIET_PNK)
@@ -89,6 +110,9 @@ const PhieuNhapKho = {
               INSERT INTO ChiTietPhieuNhapKho (MA_CHI_TIET_PNK, MA_PHIEU_NHAP_KHO, MA_MAT_HANG, MA_LO_HANG, MA_DON_VI_TINH, SO_LUONG_THEO_CHUNG_TU, SO_LUONG_THUC_NHAP, DON_GIA, THANH_TIEN, GHI_CHU)
               VALUES (@maChiTiet, @maPhieu, @maMatHang, @maLoHang, @maDonViTinh, @soLuongTheoChungTu, @soLuongThucNhap, @donGia, @thanhTien, @ghiChu)
             `);
+
+
+
 
           // Nếu có đơn đặt hàng (PO) liên kết, ta cập nhật số lượng đã nhập vào ChiTietDonMuaHang
           if (data.MA_DON_MUA) {

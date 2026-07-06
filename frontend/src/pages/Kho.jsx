@@ -19,7 +19,7 @@ function Kho() {
   const [editItem, setEditItem] = useState(null);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState({
-    MA_KHO: '', TEN_KHO: '', DIA_CHI: '', SIEU_THI_GAN_NHAT: '', TRANG_THAI: 'Hoạt động'
+    MA_KHO: '', TEN_KHO: '', DIA_CHI: '', SIEU_THI_GAN_NHAT: '', TRANG_THAI: 'Đang hoạt động'
   });
 
   const fetchData = async () => {
@@ -43,7 +43,7 @@ function Kho() {
 
   const openCreate = () => {
     setEditItem(null);
-    setForm({ MA_KHO: '', TEN_KHO: '', DIA_CHI: '', SIEU_THI_GAN_NHAT: '', TRANG_THAI: 'Hoạt động' });
+    setForm({ MA_KHO: '', TEN_KHO: '', DIA_CHI: '', SIEU_THI_GAN_NHAT: '', TRANG_THAI: 'Đang hoạt động' });
     setShowModal(true);
   };
 
@@ -60,8 +60,12 @@ function Kho() {
 
   const handleDelete = async (ma) => {
     if (!window.confirm('Bạn có chắc muốn xóa kho này?')) return;
-    try { await api.delete(`/kho/${ma}`); fetchData(); }
-    catch (err) { alert('Lỗi xóa: ' + err.message); }
+    try { 
+      await api.delete(`/kho/${ma}`); 
+      fetchData(); 
+    } catch (err) { 
+      alert('Lỗi xóa: ' + (err.response?.data?.message || err.message)); 
+    }
   };
 
   const filtered = data.filter(item =>
@@ -109,7 +113,7 @@ function Kho() {
                     <td>{item.TEN_KHO}</td>
                     <td style={{ maxWidth: '250px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.DIA_CHI}</td>
                     <td>{item.SIEU_THI_GAN_NHAT}</td>
-                    <td><span className={`badge ${item.TRANG_THAI === 'Hoạt động' ? 'badge-success' : 'badge-warning'}`}>{item.TRANG_THAI}</span></td>
+                    <td><span className={`badge ${(item.TRANG_THAI === 'Hoạt động' || item.TRANG_THAI === 'Đang hoạt động') ? 'badge-success' : 'badge-warning'}`}>{item.TRANG_THAI}</span></td>
                     <td>
                       <div style={{ display: 'flex', gap: '4px' }}>
                         <button className="btn btn-warning-link btn-sm" onClick={() => openEdit(item)} title="Sửa">
@@ -159,7 +163,7 @@ function Kho() {
                   <div className="form-group">
                     <label>Trạng thái</label>
                     <select name="TRANG_THAI" value={form.TRANG_THAI} onChange={handleChange}>
-                      <option value="Hoạt động">Hoạt động</option>
+                      <option value="Đang hoạt động">Đang hoạt động</option>
                       <option value="Tạm đóng">Tạm đóng</option>
                       <option value="Đã đóng">Đã đóng</option>
                     </select>

@@ -4,7 +4,13 @@ const connectDB = require("../config/database");
 const YeuCauMuaBoSung = {
   getAll: async () => {
     const pool = await connectDB();
-    const result = await pool.request().query("SELECT * FROM YeuCauMuaBoSung");
+    const result = await pool.request().query(`
+      SELECT y.*, k.TEN_KHO, m.TEN_MAT_HANG
+      FROM YeuCauMuaBoSung y
+      LEFT JOIN Kho k ON y.MA_KHO = k.MA_KHO
+      LEFT JOIN MatHang m ON y.MA_MAT_HANG = m.MA_MAT_HANG
+      ORDER BY y.THOI_DIEM_TAO DESC
+    `);
     return result.recordset;
   },
   create: async (data) => {

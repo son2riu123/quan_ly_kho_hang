@@ -23,6 +23,19 @@ const BienBanKiemNghiemController = {
     }
   },
 
+  getByBBGN: async (req, res) => {
+    try {
+      const { bbgn } = req.params;
+      const data = await BienBanKiemNghiem.getByBBGN(bbgn);
+      if (!data) {
+        return res.status(404).json({ message: "Không tìm thấy biên bản kiểm nghiệm cho BBGN này" });
+      }
+      res.status(200).json(data);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+
   create: async (req, res) => {
     try {
       const result = await BienBanKiemNghiem.create(req.body);

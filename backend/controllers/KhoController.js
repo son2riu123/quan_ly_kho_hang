@@ -39,6 +39,11 @@ const KhoController = {
       const result = await Kho.delete(req.params.id);
       res.status(200).json(result);
     } catch (error) {
+      if (error.message.includes('REFERENCE constraint') || error.message.includes('conflicted') || error.number === 547) {
+        return res.status(409).json({ 
+          message: "Không thể xóa kho hàng này vì đang có các dữ liệu liên quan liên kết (như Vị trí kho, Đơn mua hàng, Phiếu nhập hoặc Đợt kiểm kê). Bạn nên chuyển trạng thái kho sang 'Tạm đóng' hoặc 'Đã đóng' để tạm dừng hoạt động." 
+        });
+      }
       res.status(500).json({ message: "Lỗi xóa", error: error.message });
     }
   }

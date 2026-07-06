@@ -36,7 +36,7 @@ frontend/
 │   ├── pages/         # Từng màn hình chức năng độc lập (Dashboard, Nhập kho, Kiểm kê...)
 │   ├── services/      # Kết nối API (Axios/Fetch) đến Backend
 │   ├── utils/         # Các hàm format định dạng tiện ích (tiền tệ, ngày giờ...)
-│   ├── App.css        # CSS giao diện macOS 26
+│   ├── App.css        # CSS giao diện 
 │   ├── App.jsx        # Định tuyến (Router) và cấu trúc ứng dụng React
 │   ├── index.css      # CSS cơ bản toàn cục
 │   └── main.jsx       # Điểm neo React Component vào index.html
